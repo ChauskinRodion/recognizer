@@ -1,0 +1,32 @@
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="/content/site.css" />
+    <link rel="stylesheet" type="text/css" href="/content/bootstrap/bootstrap.css"/>
+    <link rel="stylesheet" type="text/css" href="/content/bootstrap/bootstrap-theme.css" />
+    <link rel="stylesheet" type="text/css" href="/content/fileinput.css" /> 
+    <script src="/scripts/libs/jquery-2.1.4.js"></script>
+    <script src="/scripts/libs/bootstrap.js"></script>
+</head>
+<body>
+    <input type="file" id="picture" accept="image/jpeg" />
+    <button id="btn_recognize">Recognize</button>
+
+    <script src="/scripts/imageManager.js"></script>
+    <script src="/scripts/plugins/fileinput.js"></script>
+    <script>
+        $(document).on('ready', function () {
+            $("#picture").fileinput({
+                showCaption: true,
+                showRemove: true,
+                showUpload: true,
+            });
+        });
+        $("#btn_recognize").on('click', function () {
+            var fullPath = $("#picture").val();
+            fullPath = fullPath.replace("C:\\fakepath\\", "");
+            var image = new ImageRecognitionLab.TargetImage(fullPath);
+            var data = image.getImageData();
+        });
+    </script>
+</body>
+</html>
