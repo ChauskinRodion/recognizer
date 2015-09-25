@@ -22,10 +22,16 @@
             });
         });
         $("#btn_recognize").on('click', function () {
-            var fullPath = $("#picture").val();
-            fullPath = fullPath.replace("C:\\fakepath\\", "");
-            var image = new ImageRecognitionLab.TargetImage(fullPath);
-            var data = image.getImageData();
+            const fakePathString = "C:\\fakepath\\";
+            var fakePath = $("#picture").val();
+            filePath = fakePath.replace(fakePathString, "");
+            var image = new ImageRecognitionLab.TargetImage(filePath);
+            image.initialize().then(function () {
+                var map = image.getRgbMap();
+            },
+            function(){
+                console.log("cannot load image");
+            })  
         });
     </script>
 </body>
