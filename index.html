@@ -12,6 +12,7 @@
     <button id="btn_recognize">Recognize</button>
 
     <script src="/scripts/imageManager.js"></script>
+    <script src="/scripts/rgbMap.js"></script>
     <script src="/scripts/plugins/fileinput.js"></script>
     <script>
         $(document).on('ready', function () {
@@ -28,6 +29,9 @@
             var image = new ImageRecognitionLab.TargetImage(filePath);
             image.initialize().then(function () {
                 var map = image.getRgbMap();
+                console.log(map.getRed(0, 0));
+                console.log(map.getGreen(0, 0));
+                console.log(map.getBlue(0, 0));
             },
             function(){
                 console.log("cannot load image");
