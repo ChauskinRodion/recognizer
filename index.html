@@ -6,32 +6,56 @@
     <link rel="stylesheet" type="text/css" href="/content/fileinput.css" /> 
     <script src="/scripts/libs/jquery-2.1.4.js"></script>
     <script src="/scripts/libs/bootstrap.js"></script>
+    <script src="/scripts/plugins/fileinput.js"></script>
 </head>
 <body>
-    <input type="file" id="picture" accept="image/jpeg" />
-    <button id="btn_recognize">Recognize</button>
+    <div class="panel input-panel row">
+        <div id="file_input_wrapper" class="col-md-6">
+            <input type="file" id="picture" accept="image/jpeg" />
+        </div>
+        <fieldset class="filters">
+            <label><input type="radio" name="filter" value="linear_color_correction">Цветовая линейная коррекция</label>
+            <label><input type="radio" name="filter" value="grayworld_color_correction">"Серый мир"</label>
+            <button id="btn_run">Run</button>
+        </fieldset> 
+    </div>
+    <div class="panel output-panel row">
+        <canvas id="image_in" class="col-xs-6 col-sm-6 col-md-6 col-lg-6 pull-left"></canvas>
+        <canvas id="image_out" class="col-xs-6 col-sm-6 col-md-6 col-lg-6 pull-right"></canvas>
+    </div>
 
-    <script src="/scripts/imageManager.js"></script>
+    <script src="/scripts/libs/underscore.js"></script>
+    <script src="/scripts/colorEnum.js"></script>
     <script src="/scripts/rgbMap.js"></script>
-    <script src="/scripts/plugins/fileinput.js"></script>
+    <script src="/scripts/imageManager.js"></script>
+    <script src="/scripts/processingManager.js"></script>
     <script>
         $(document).on('ready', function () {
             $("#picture").fileinput({
                 showCaption: true,
                 showRemove: true,
-                showUpload: true,
+                showUpload: false,
             });
         });
-        $("#btn_recognize").on('click', function () {
+        $("#btn_run").on('click', function () {
             const fakePathString = "C:\\fakepath\\";
             var fakePath = $("#picture").val();
             filePath = fakePath.replace(fakePathString, "");
-            var image = new ImageRecognitionLab.TargetImage(filePath);
-            image.initialize().then(function () {
-                var map = image.getRgbMap();
-                console.log(map.getRed(0, 0));
-                console.log(map.getGreen(0, 0));
-                console.log(map.getBlue(0, 0));
+            ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function (result) {
+                var rgbMap = result;
+                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
+                var newRgbMap = null;
+                var filter = $("input[name='filter']:checked").val();
+                if (filter === "linear_color_correction") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.linearCorrection(rgbMap);
+                }
+                else if (filter === "grayworld_color_correction") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.grayWorldAdjustment(rgbMap);
+                }
+                else {
+                    throw new Error("incorrect filter");
+                }
+                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), newRgbMap);
             },
             function(){
                 console.log("cannot load image");

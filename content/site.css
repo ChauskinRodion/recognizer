@@ -1,2 +1,6 @@
 ﻿body {
 }
+
+.filters label{
+    display: block;
+}

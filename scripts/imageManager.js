@@ -1,23 +1,28 @@
 ﻿var ImageRecognitionLab = ImageRecognitionLab || {};
 
-ImageRecognitionLab.TargetImage = function (src) {
-    var self = this;
-
-    self.src = src;
-    self.rgbMap = null;
-
-    function initialize() {
+ImageRecognitionLab.ImageManager = (function () {
+    function getRgbMap(src) {
         var deferred = $.Deferred();
         var image = new Image();
         image.onload = function () {
-            self.rgbMap = getRgbMapFromImage(image);
-            deferred.resolve();
+            var rgbMap = getRgbMapFromImage(image);
+            deferred.resolve(rgbMap);
         }
         image.onerror = function () {
             deferred.reject();
         }
-        image.src = self.src;
+        image.src = src;
         return deferred.promise();
+    }
+
+    function drawRgbMap(targetCanvasJQuery, rgbMap) {
+        var targetCanvas = _.first(targetCanvasJQuery);
+        targetCanvas.width = rgbMap.width;
+        targetCanvas.height = rgbMap.height;
+        var context = targetCanvas.getContext('2d');
+        var imageData = context.createImageData(rgbMap.width, rgbMap.height);
+        rgbMap.populateImageData(imageData);
+        context.putImageData(imageData, 0, 0);
     }
 
     function createCanvas(image) {
@@ -40,10 +45,7 @@ ImageRecognitionLab.TargetImage = function (src) {
     }
 
     return {
-        getRgbMap: function () {
-            return self.rgbMap;
-        },
-
-        initialize: initialize,
+        getRgbMap: getRgbMap,
+        drawRgbMap: drawRgbMap,
     }
-}
+})();
