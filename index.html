@@ -16,6 +16,10 @@
         <fieldset class="filters">
             <label><input type="radio" name="filter" value="linear_color_correction">Цветовая линейная коррекция</label>
             <label><input type="radio" name="filter" value="grayworld_color_correction">"Серый мир"</label>
+            <label><input type="radio" name="filter" value="grayscale">Градации серого</label>
+            <label><input type="radio" name="filter" value="filter">Усреднение</label>
+            <label><input type="radio" name="filter" value="median">Медианный</label>
+            <label><input type="radio" name="filter" value="harmonicMean">Гармоническое среднее</label>
             <button id="btn_run">Run</button>
         </fieldset> 
     </div>
@@ -47,10 +51,22 @@
                 var newRgbMap = null;
                 var filter = $("input[name='filter']:checked").val();
                 if (filter === "linear_color_correction") {
-                    newRgbMap = ImageRecognitionLab.ProcessingManager.linearCorrection(rgbMap);
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(rgbMap);
                 }
                 else if (filter === "grayworld_color_correction") {
-                    newRgbMap = ImageRecognitionLab.ProcessingManager.grayWorldAdjustment(rgbMap);
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.grayWorldAdjustmentFilter(rgbMap);
+                }
+                else if (filter === "grayscale") {
+                    newRgbMap = rgbMap.toGray();
+                }
+                else if (filter === "filter") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.blurFilter(rgbMap);
+                }
+                else if (filter === "median") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.medianFilter(rgbMap);
+                }
+                else if (filter === "harmonicMean") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.harmonicMeanFilter(rgbMap);
                 }
                 else {
                     throw new Error("incorrect filter");

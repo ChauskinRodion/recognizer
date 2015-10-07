@@ -64,6 +64,12 @@ ImageRecognitionLab.RgbMap = function (width, height, imageData) {
     }
 
     function set(i, j, color, value) {
+        if (value < 0) {
+            value = 0;
+        }
+        if (value > 255) {
+            value = 255;
+        }
         self.pixels[i][j][color] = value;
     }
 
@@ -115,7 +121,7 @@ ImageRecognitionLab.RgbMap = function (width, height, imageData) {
         }));
     }
 
-    function transform(fn, colors, rgbMap) {
+    function transformByPixel(fn, colors, rgbMap) {
         var result = rgbMap;
         if (result === undefined) {
             result = new ImageRecognitionLab.RgbMap(self.width, self.height);
@@ -128,6 +134,50 @@ ImageRecognitionLab.RgbMap = function (width, height, imageData) {
                 }
             }
         });
+        return result;
+    }
+
+    function transformByCore(coreSize, memo, colors, fnProcess, fnRes) {
+        var result = new ImageRecognitionLab.RgbMap(self.width, self.height);
+        _.each(colors, function (colorValue, colorKey) {
+            for (var i = 0; i < self.height; i++) {
+                for (var j = 0; j < self.width; j++) {
+                    var localMemo = memo;
+                    var newValue = processPixelUsingCore(i, j, coreSize, localMemo, colorValue, fnProcess, fnRes);
+                    result.set(i, j, colorValue, newValue);
+                }
+            }
+        });
+        return result;
+    }
+
+    function processPixelUsingCore(i, j, coreSize, memo, color, fnProcess, fnRes) {
+        var halfSize = (coreSize - 1) / 2;
+        for (var k = -halfSize; k <= halfSize; k++) {
+            for (var p = -halfSize; p <= halfSize; p++) {
+                var absI = i + k;
+                var absJ = j + p;
+                if ((absI < 0) || (absJ < 0) || (absI >= self.height) || (absJ >= self.width)) {
+                    return get(i, j, color);
+                }
+                var coreI = k + halfSize;
+                var coreJ = p + halfSize;
+                fnProcess(absI, absJ, coreI, coreJ, memo, color);
+            }
+        }
+        return fnRes(memo);
+    }
+
+    function toGray() {
+        var result = new ImageRecognitionLab.RgbMap(self.width, self.height);
+        for (var i = 0; i < self.height; i++) {
+            for (var j = 0; j < self.width; j++) {
+                var newValue = getBrightness(i, j)
+                result.set(i, j, Color.RED, newValue);
+                result.set(i, j, Color.GREEN, newValue);
+                result.set(i, j, Color.BLUE, newValue);
+            }
+        }
         return result;
     }
 
@@ -150,8 +200,12 @@ ImageRecognitionLab.RgbMap = function (width, height, imageData) {
 
         max: max,
 
-        transform: transform,
+        transformByPixel: transformByPixel,
+
+        transformByCore: transformByCore,
 
         average: average,
+
+        toGray: toGray,
     }
 }
