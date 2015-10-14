@@ -1,12 +1,12 @@
-<html>
+<html itemscope="" itemtype="http://schema.org/WebPage" lang="ru">
 <head>
-    <link rel="stylesheet" type="text/css" href="/content/site.css" />
-    <link rel="stylesheet" type="text/css" href="/content/bootstrap/bootstrap.css"/>
-    <link rel="stylesheet" type="text/css" href="/content/bootstrap/bootstrap-theme.css" />
-    <link rel="stylesheet" type="text/css" href="/content/fileinput.css" /> 
-    <script src="/scripts/libs/jquery-2.1.4.js"></script>
-    <script src="/scripts/libs/bootstrap.js"></script>
-    <script src="/scripts/plugins/fileinput.js"></script>
+    <link rel="stylesheet" type="text/css" href="content/site.css" />
+    <link rel="stylesheet" type="text/css" href="content/bootstrap/bootstrap.css"/>
+    <link rel="stylesheet" type="text/css" href="content/bootstrap/bootstrap-theme.css" />
+    <link rel="stylesheet" type="text/css" href="content/fileinput.css" />
+    <script src="scripts/libs/jquery-2.1.4.js"></script>
+    <script src="scripts/libs/bootstrap.js"></script>
+    <script src="scripts/plugins/fileinput.js"></script>
 </head>
 <body>
     <div class="panel input-panel row">
@@ -14,38 +14,43 @@
             <input type="file" id="picture" accept="image/jpeg" />
         </div>
         <fieldset class="filters">
-            <label><input type="radio" name="filter" value="linear_color_correction">Цветовая линейная коррекция</label>
-            <label><input type="radio" name="filter" value="grayworld_color_correction">"Серый мир"</label>
-            <label><input type="radio" name="filter" value="grayscale">Градации серого</label>
-            <label><input type="radio" name="filter" value="filter">Усреднение</label>
-            <label><input type="radio" name="filter" value="median">Медианный</label>
-            <label><input type="radio" name="filter" value="harmonicMean">Гармоническое среднее</label>
+            <label><input type="radio" name="filter" value="linear_color_correction">Р¦РІРµС‚РѕРІР°СЏ Р»РёРЅРµР№РЅР°СЏ РєРѕСЂСЂРµРєС†РёСЏ</label>
+            <label><input type="radio" name="filter" value="grayworld_color_correction">"РЎРµСЂС‹Р№ РјРёСЂ"</label>
+            <label><input type="radio" name="filter" value="grayscale">Р“СЂР°РґР°С†РёРё СЃРµСЂРѕРіРѕ</label>
+            <label><input type="radio" name="filter" value="filter">РЈСЃСЂРµРґРЅРµРЅРёРµ</label>
+            <label><input type="radio" name="filter" value="median">РњРµРґРёР°РЅРЅС‹Р№</label>
+            <label><input type="radio" name="filter" value="harmonicMean">Р“Р°СЂРјРѕРЅРёС‡РµСЃРєРѕРµ СЃСЂРµРґРЅРµРµ</label>
             <button id="btn_run">Run</button>
-        </fieldset> 
+        </fieldset>
     </div>
     <div class="panel output-panel row">
         <canvas id="image_in" class="col-xs-6 col-sm-6 col-md-6 col-lg-6 pull-left"></canvas>
         <canvas id="image_out" class="col-xs-6 col-sm-6 col-md-6 col-lg-6 pull-right"></canvas>
     </div>
 
-    <script src="/scripts/libs/underscore.js"></script>
-    <script src="/scripts/colorEnum.js"></script>
-    <script src="/scripts/rgbMap.js"></script>
-    <script src="/scripts/imageManager.js"></script>
-    <script src="/scripts/processingManager.js"></script>
+    <script src="scripts/libs/underscore.js"></script>
+    <script src="scripts/colorEnum.js"></script>
+    <script src="scripts/rgbMap.js"></script>
+    <script src="scripts/imageManager.js"></script>
+    <script src="scripts/processingManager.js"></script>
     <script>
         $(document).on('ready', function () {
             $("#picture").fileinput({
                 showCaption: true,
                 showRemove: true,
-                showUpload: false,
+                showUpload: false
             });
         });
         $("#btn_run").on('click', function () {
-            const fakePathString = "C:\\fakepath\\";
+            // const fakePathString = "C:\\fakepath\\";
             var fakePath = $("#picture").val();
-            filePath = fakePath.replace(fakePathString, "");
+            console.log(fakePath);
+//            filePath = fakePath.replace(fakePathString, "");
+//            filePath = '/Users/rodionchauskin/Pictures/wallpapers/beach/Walk-on-the-beach-summer-time_2880x1800.jpg'
+
+            filePath = '580x380_N8g3MFSdT6dnyx9xZQGr.jpg';
             ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function (result) {
+                console.log(rgbMap)
                 var rgbMap = result;
                 ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
                 var newRgbMap = null;
@@ -75,7 +80,7 @@
             },
             function(){
                 console.log("cannot load image");
-            })  
+            })
         });
     </script>
 </body>

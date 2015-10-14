@@ -1,0 +1,3 @@
+For mac users::
+    Use following command to open chrome
+    open /Applications/Google\ Chrome.app --args --allow-file-access-from-files
