@@ -1,4 +1,6 @@
-﻿var ImageRecognitionLab = ImageRecognitionLab || {};
+﻿BINARY_LIMIT = 255 / 2;
+
+var ImageRecognitionLab = ImageRecognitionLab || {};
 
 ImageRecognitionLab.ProcessingManager = (function () {
 
@@ -76,6 +78,20 @@ ImageRecognitionLab.ProcessingManager = (function () {
             });
     }
 
+    function binaryFilter(rgbMap) {
+      var coreSize = 3;
+      var memo = { sum: 0 };
+      return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
+        function (absI, absJ, coreI, coreJ, memo, color) {
+          memo.sum += rgbMap.get(absI, absJ, color);
+        },
+        function (memo) {
+          var res = memo.sum / (coreSize*coreSize);
+          memo.sum = 0;
+          return res > BINARY_LIMIT ? 255 : 0;
+        });
+    }
+
     //function gaussianFilter(rgbMap) {
     //    var coreSize = 3;
     //    var memo = { sum: 0 };
@@ -97,6 +113,7 @@ ImageRecognitionLab.ProcessingManager = (function () {
         blurFilter: blurFilter,
         medianFilter: medianFilter,
         harmonicMeanFilter: harmonicMeanFilter,
+        binaryFilter: binaryFilter
         //gaussianFilter: gaussianFilter,
     }
 })();

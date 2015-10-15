@@ -20,6 +20,7 @@
             <label><input type="radio" name="filter" value="filter">Усреднение</label>
             <label><input type="radio" name="filter" value="median">Медианный</label>
             <label><input type="radio" name="filter" value="harmonicMean">Гармоническое среднее</label>
+            <label><input type="radio" name="filter" value="binary">Бинаризационный фильтр</label>
             <button id="btn_run">Run</button>
         </fieldset>
     </div>
@@ -42,15 +43,10 @@
             });
         });
         $("#btn_run").on('click', function () {
-            // const fakePathString = "C:\\fakepath\\";
+            const fakePathString = "C:\\fakepath\\";
             var fakePath = $("#picture").val();
-            console.log(fakePath);
-//            filePath = fakePath.replace(fakePathString, "");
-//            filePath = '/Users/rodionchauskin/Pictures/wallpapers/beach/Walk-on-the-beach-summer-time_2880x1800.jpg'
-
-            filePath = '580x380_N8g3MFSdT6dnyx9xZQGr.jpg';
+            filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
             ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function (result) {
-                console.log(rgbMap)
                 var rgbMap = result;
                 ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
                 var newRgbMap = null;
@@ -72,6 +68,9 @@
                 }
                 else if (filter === "harmonicMean") {
                     newRgbMap = ImageRecognitionLab.ProcessingManager.harmonicMeanFilter(rgbMap);
+                }
+                else if (filter === "binary") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(rgbMap);
                 }
                 else {
                     throw new Error("incorrect filter");
