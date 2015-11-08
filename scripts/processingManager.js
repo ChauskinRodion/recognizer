@@ -79,7 +79,7 @@ ImageRecognitionLab.ProcessingManager = (function () {
     }
 
     function binaryFilter(rgbMap) {
-      var coreSize = 3;
+      var coreSize = 5;
       var memo = { sum: 0 };
       return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
         function (absI, absJ, coreI, coreJ, memo, color) {
@@ -92,20 +92,65 @@ ImageRecognitionLab.ProcessingManager = (function () {
         });
     }
 
-    //function gaussianFilter(rgbMap) {
-    //    var coreSize = 3;
-    //    var memo = { sum: 0 };
-    //    return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
-    //        function (absI, absJ, coreI, coreJ, memo, color) {
-    //            var pixelValue = rgbMap.get(absI, absJ, color);
-    //            memo.sum += Math.exp(-())
-    //        },
-    //        function (memo) {
-    //            var res = 9 / memo.sum;
-    //            memo.sum = 0;
-    //            return res;
-    //        });
-    //}
+    function adaptiveBinaryFilter(rgbMap) {
+        var coreSize = 7;
+        var coeff = 7;
+        var memo = { sum: 0, centralPixel: -1 };
+        return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
+            function(absI, absJ, coreI, coreJ, memo, color) {
+                var pixelValue = rgbMap.get(absI, absJ, color);
+                memo.sum += pixelValue;
+                var centralPixel = ((coreSize - 1) / 2);
+                if (coreI === centralPixel && coreJ === centralPixel) {
+                    memo.centralPixel = pixelValue;
+                }
+            },
+            function(memo) {
+                var mean = memo.sum / (coreSize * coreSize);
+                memo.sum = 0;
+                return memo.centralPixel > mean + coeff ? 255 : 0;
+            });
+    }
+
+    function sobelFilter(rgbMap) {
+        var coreSize = 3;
+        var core1 = [[1, 0, -1], [2, 0, -2], [1, 0, -1]];
+        var core2 = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]];
+        var memo = { sum1: 0, sum2: 0 };
+        return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
+            function (absI, absJ, coreI, coreJ, memo, color) {
+                var pixelValue = rgbMap.get(absI, absJ, color);
+                memo.sum1 += pixelValue * core1[coreI][coreJ];
+                memo.sum2 += pixelValue * core2[coreI][coreJ];
+            },
+            function (memo) {
+                var res1 = memo.sum1 / (coreSize * coreSize);
+                var res2 = memo.sum2 / (coreSize * coreSize);
+                memo.sum1 = 0;
+                memo.sum2 = 0;
+                return Math.sqrt(Math.pow(res1, 2), Math.pow(res2, 2));
+            });
+    }
+
+    function prewittFilter(rgbMap) {
+        var coreSize = 3;
+        var core1 = [[1, 0, -1], [1, 0, -1], [1, 0, -1]];
+        var core2 = [[-1, -1, -1], [0, 0, 0], [1, 1, 1]];
+        var memo = { sum1: 0, sum2: 0 };
+        return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
+            function (absI, absJ, coreI, coreJ, memo, color) {
+                var pixelValue = rgbMap.get(absI, absJ, color);
+                memo.sum1 += pixelValue * core1[coreI][coreJ];
+                memo.sum2 += pixelValue * core2[coreI][coreJ];
+            },
+            function (memo) {
+                var res1 = memo.sum1 / (coreSize * coreSize);
+                var res2 = memo.sum2 / (coreSize * coreSize);
+                memo.sum1 = 0;
+                memo.sum2 = 0;
+                return Math.max(res1, res2);
+            });
+    }
 
     return {
         linearCorrectionFilter: linearCorrectionFilter,
@@ -113,7 +158,9 @@ ImageRecognitionLab.ProcessingManager = (function () {
         blurFilter: blurFilter,
         medianFilter: medianFilter,
         harmonicMeanFilter: harmonicMeanFilter,
-        binaryFilter: binaryFilter
-        //gaussianFilter: gaussianFilter,
-    }
+        binaryFilter: binaryFilter,
+        adaptiveBinaryFilter: adaptiveBinaryFilter,
+        sobelFilter: sobelFilter,
+        prewittFilter: prewittFilter
+}
 })();

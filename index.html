@@ -1,9 +1,10 @@
 <html itemscope="" itemtype="http://schema.org/WebPage" lang="ru">
 <head>
-    <link rel="stylesheet" type="text/css" href="content/site.css" />
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="content/site.css"/>
     <link rel="stylesheet" type="text/css" href="content/bootstrap/bootstrap.css"/>
-    <link rel="stylesheet" type="text/css" href="content/bootstrap/bootstrap-theme.css" />
-    <link rel="stylesheet" type="text/css" href="content/fileinput.css" />
+    <link rel="stylesheet" type="text/css" href="content/bootstrap/bootstrap-theme.css"/>
+    <link rel="stylesheet" type="text/css" href="content/fileinput.css"/>
     <script src="scripts/libs/jquery-2.1.4.js"></script>
     <script src="scripts/libs/bootstrap.js"></script>
     <script src="scripts/plugins/fileinput.js"></script>
@@ -20,7 +21,10 @@
             <label><input type="radio" name="filter" value="filter">Усреднение</label>
             <label><input type="radio" name="filter" value="median">Медианный</label>
             <label><input type="radio" name="filter" value="harmonicMean">Гармоническое среднее</label>
-            <label><input type="radio" name="filter" value="binary">Бинаризационный фильтр</label>
+            <label><input type="radio" name="filter" value="binary">Бинаризация</label>
+            <label><input type="radio" name="filter" value="adaptiveBinary">Адаптивная бинаризация</label>
+            <label><input type="radio" name="filter" value="sobel">Оператор Собеля</label>
+            <label><input type="radio" name="filter" value="prewitt">Оператор Превитта</label>
             <button id="btn_run">Run</button>
         </fieldset>
     </div>
@@ -46,40 +50,39 @@
             const fakePathString = "C:\\fakepath\\";
             var fakePath = $("#picture").val();
             filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
-            ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function (result) {
-                var rgbMap = result;
-                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
-                var newRgbMap = null;
-                var filter = $("input[name='filter']:checked").val();
-                if (filter === "linear_color_correction") {
-                    newRgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(rgbMap);
-                }
-                else if (filter === "grayworld_color_correction") {
-                    newRgbMap = ImageRecognitionLab.ProcessingManager.grayWorldAdjustmentFilter(rgbMap);
-                }
-                else if (filter === "grayscale") {
-                    newRgbMap = rgbMap.toGray();
-                }
-                else if (filter === "filter") {
-                    newRgbMap = ImageRecognitionLab.ProcessingManager.blurFilter(rgbMap);
-                }
-                else if (filter === "median") {
-                    newRgbMap = ImageRecognitionLab.ProcessingManager.medianFilter(rgbMap);
-                }
-                else if (filter === "harmonicMean") {
-                    newRgbMap = ImageRecognitionLab.ProcessingManager.harmonicMeanFilter(rgbMap);
-                }
-                else if (filter === "binary") {
-                    newRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(rgbMap);
-                }
-                else {
-                    throw new Error("incorrect filter");
-                }
-                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), newRgbMap);
-            },
-            function(){
-                console.log("cannot load image");
-            })
+            ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
+                    var rgbMap = result.toGray();
+                    ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
+                    var newRgbMap = null;
+                    var filter = $("input[name='filter']:checked").val();
+                    if (filter === "linear_color_correction") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(rgbMap);
+                    } else if (filter === "grayworld_color_correction") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.grayWorldAdjustmentFilter(rgbMap);
+                    } else if (filter === "grayscale") {
+                        newRgbMap = rgbMap.toGray();
+                    } else if (filter === "filter") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.blurFilter(rgbMap);
+                    } else if (filter === "median") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.medianFilter(rgbMap);
+                    } else if (filter === "harmonicMean") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.harmonicMeanFilter(rgbMap);
+                    } else if (filter === "binary") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(rgbMap);
+                    } else if (filter === "adaptiveBinary") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.adaptiveBinaryFilter(rgbMap);
+                    } else if (filter === "sobel") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.sobelFilter(rgbMap);
+                    } else if (filter === "prewitt") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.prewittFilter(rgbMap);
+                    } else {
+                        throw new Error("incorrect filter");
+                    }
+                    ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), newRgbMap);
+                },
+                function() {
+                    console.log("cannot load image");
+                });
         });
     </script>
 </body>
