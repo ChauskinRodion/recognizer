@@ -7,10 +7,10 @@ ImageRecognitionLab.ImageManager = (function () {
         image.onload = function () {
             var rgbMap = getRgbMapFromImage(image);
             deferred.resolve(rgbMap);
-        }
+        };
         image.onerror = function () {
             deferred.reject();
-        }
+        };
         image.src = src;
         return deferred.promise();
     }

@@ -86,7 +86,7 @@ ImageRecognitionLab.ProcessingManager = (function () {
           memo.sum += rgbMap.get(absI, absJ, color);
         },
         function (memo) {
-          var res = memo.sum / (coreSize*coreSize);
+          var res = memo.sum / (coreSize * coreSize);
           memo.sum = 0;
           return res > BINARY_LIMIT ? 255 : 0;
         });
