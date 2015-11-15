@@ -4,4 +4,17 @@
 
 .filters label{
     display: block;
+<<<<<<< HEAD
 }
+=======
+    transition: color, 0.2s;
+    cursor: pointer;
+}
+.filters label:hover{
+    color: #0C51AB;
+
+}
+.filters label input {
+    margin: 5px;
+}
+>>>>>>> origin/master

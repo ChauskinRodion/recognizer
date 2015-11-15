@@ -12,7 +12,7 @@
 <body>
     <div class="panel input-panel row">
         <div id="file_input_wrapper" class="col-md-6">
-            <input type="file" id="picture" accept="image/jpeg" />
+            <input type="file" id="picture" accept="image/jpeg/gif" />
         </div>
         <fieldset class="filters">
             <label><input type="radio" name="filter" value="linear_color_correction">Цветовая линейная коррекция</label>
@@ -50,6 +50,7 @@
             showRemove: true,
             showUpload: false
         });
+<<<<<<< HEAD
     });
     $("#btn_filter").on('click', function() {
         const fakePathString = "C:\\fakepath\\";
@@ -126,6 +127,45 @@
             var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology);
             areaMap.circle(result, { red: 255, green: 0, blue: 0 });
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
+=======
+        $("#btn_run").on('click', function () {
+            const fakePathString = "C:\\fakepath\\";
+            var fakePath = $("#picture").val();
+            filePath = fakePath.replace(fakePathString, "");
+            ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
+                    var rgbMap = result.toGray();
+                    ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
+                    var newRgbMap = null;
+                    var filter = $("input[name='filter']:checked").val();
+                    if (filter === "linear_color_correction") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(rgbMap);
+                    } else if (filter === "grayworld_color_correction") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.grayWorldAdjustmentFilter(rgbMap);
+                    } else if (filter === "grayscale") {
+                        newRgbMap = rgbMap.toGray();
+                    } else if (filter === "filter") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.blurFilter(rgbMap);
+                    } else if (filter === "median") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.medianFilter(rgbMap);
+                    } else if (filter === "harmonicMean") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.harmonicMeanFilter(rgbMap);
+                    } else if (filter === "binary") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(rgbMap.toGray());
+                    } else if (filter === "adaptiveBinary") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.adaptiveBinaryFilter(rgbMap);
+                    } else if (filter === "sobel") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.sobelFilter(rgbMap);
+                    } else if (filter === "prewitt") {
+                        newRgbMap = ImageRecognitionLab.ProcessingManager.prewittFilter(rgbMap);
+                    } else {
+                        throw new Error("incorrect filter");
+                    }
+                    ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), newRgbMap);
+                },
+                function() {
+                    console.log("cannot load image");
+                });
+>>>>>>> origin/master
         });
         $(".loader").addClass("inactive");
     });
