@@ -1,89 +1,97 @@
 ﻿var ImageRecognitionLab = ImageRecognitionLab || {}
-    
-ImageRecognitionLab.RgbMap = function (width, height, imageData) {
-    var Color = ImageRecognitionLab.ColorEnum;
-    var self = this;
-    self.width = width;
-    self.height = height;
-    self.count = width * height;
 
-    if (imageData !== undefined) {
-        self.pixels = createRgbMap(width, height, imageData);
-    }
-    else {
-        self.pixels = createEmptyRgbMap(width, height);
-    }
+ImageRecognitionLab.RgbMap = (function () {
+    function RgbMap(width, height, imageData) {
+        this.width = width;
+        this.height = height;
+        this.count = width * height;
 
-    function createRgbMap(width, height, imageData) {
-        var pixels = new Array();
-        for (i = 0; i < height; i++) {
-            pixels[i] = new Array();
-            for (j = 0; j < width; j++) {
-                pixels[i][j] = new Array();
-                var index = j * 4;
-                pixels[i][j][0] = imageData.data[i * width * 4 + index];
-                index++;
-                pixels[i][j][1] = imageData.data[i * width * 4 + index];
-                index++;
-                pixels[i][j][2] = imageData.data[i * width * 4 + index];
-            }
+        if (imageData !== undefined) {
+            this.pixels = createRgbMap(width, height, imageData);
         }
-        return pixels;
-    }
-
-    function createEmptyRgbMap(width, height) {
-        var pixels = new Array();
-        for (i = 0; i < height; i++) {
-            pixels[i] = new Array();
-            for (j = 0; j < width; j++) {
-                pixels[i][j] = new Array();
-                pixels[i][j][0] = 0;
-                pixels[i][j][1] = 0;
-                pixels[i][j][2] = 0;
-            }
+        else {
+            this.pixels = createEmptyRgbMap(width, height);
         }
-        return pixels;
-    }
 
-    function populateImageData(imageData) {
+        function createRgbMap(width, height, imageData) {
+            var pixels = new Array();
+            for (var i = 0; i < height; i++) {
+                pixels[i] = new Array();
+                for (var j = 0; j < width; j++) {
+                    pixels[i][j] = new Array();
+                    var index = j * 4;
+                    pixels[i][j][0] = imageData.data[i * width * 4 + index];
+                    index++;
+                    pixels[i][j][1] = imageData.data[i * width * 4 + index];
+                    index++;
+                    pixels[i][j][2] = imageData.data[i * width * 4 + index];
+                }
+            }
+            return pixels;
+        }
+
+        function createEmptyRgbMap(width, height) {
+            var pixels = new Array();
+            for (var i = 0; i < height; i++) {
+                pixels[i] = new Array();
+                for (var j = 0; j < width; j++) {
+                    pixels[i][j] = new Array();
+                    pixels[i][j][0] = 0;
+                    pixels[i][j][1] = 0;
+                    pixels[i][j][2] = 0;
+                }
+            }
+            return pixels;
+        }
+    };
+
+    RgbMap.prototype.populateImageData = function(imageData) {
         var data = imageData.data;
 
         var index = 0;
-        for (var i = 0; i < self.height; i++) {
-            for (var j = 0; j < self.width; j++) {
-                data[index++] = get(i, j, Color.RED);
-                data[index++] = get(i, j, Color.GREEN);
-                data[index++] = get(i, j, Color.BLUE);
+        for (var i = 0; i < this.height; i++) {
+            for (var j = 0; j < this.width; j++) {
+                data[index++] = this.get(i, j, ImageRecognitionLab.ColorEnum.RED);
+                data[index++] = this.get(i, j, ImageRecognitionLab.ColorEnum.GREEN);
+                data[index++] = this.get(i, j, ImageRecognitionLab.ColorEnum.BLUE);
                 data[index++] = 255;
             }
         }
     }
 
-    function get(i, j, color) {
-        return self.pixels[i][j][color];
+    RgbMap.prototype.get = function(i, j, color) {
+        return this.pixels[i][j][color];
     }
 
-    function set(i, j, color, value) {
+    RgbMap.prototype.set = function (i, j, value, color) {
         if (value < 0) {
             value = 0;
         }
         if (value > 255) {
             value = 255;
         }
-        self.pixels[i][j][color] = value;
+
+        if (i < 0 || i >= this.height || j < 0 || j >= this.width) {
+            return;
+        }
+
+        this.pixels[i][j][color] = value;
     }
 
-    function getBrightness(i, j) {
-        return 0.3 * get(i, j, Color.RED) + 0.59 * get(i, j, Color.GREEN) + 0.11 * get(i, j, Color.BLUE);
+    RgbMap.prototype.getBrightness = function(i, j) {
+        return 0.3 * this.get(i, j, ImageRecognitionLab.ColorEnum.RED)
+            + 0.59 * this.get(i, j, ImageRecognitionLab.ColorEnum.GREEN)
+            + 0.11 * this.get(i, j, ImageRecognitionLab.ColorEnum.BLUE);
     }
 
-    function average() {
-        return _.object(_.map(Color, function (colorValue, colorKey) {
+    RgbMap.prototype.average = function (colors) {
+        var self = this;
+        return _.object(_.map(colors, function (colorValue, colorKey) {
             var result = 0;
             for (var i = 0; i < self.height; i++) {
                 var lineSum = 0;
                 for (var j = 0; j < self.width; j++) {
-                    lineSum += get(i, j, colorValue);
+                    lineSum += self.get(i, j, colorValue);
                 }
                 result += lineSum / self.count;
             }
@@ -91,12 +99,13 @@ ImageRecognitionLab.RgbMap = function (width, height, imageData) {
         })); 
     }
 
-    function min() {
+    RgbMap.prototype.min = function(colors) {
         var minValue = 255;
-        return _.object(_.map(Color, function (color, key) {
+        var self = this;
+        return _.object(_.map(colors, function (color, key) {
             for (var i = 0; i < self.height; i++) {
                 for (var j = 0; j < self.width; j++) {
-                    var pixel = get(i, j, color);
+                    var pixel = self.get(i, j, color);
                     if (pixel < minValue) {
                         minValue = pixel;
                     }
@@ -106,12 +115,13 @@ ImageRecognitionLab.RgbMap = function (width, height, imageData) {
         }));
     }
 
-    function max() {
+    RgbMap.prototype.max = function(colors) {
         var maxValue = 0;
-        return _.object(_.map(Color, function (color, key) {
+        var self = this;
+        return _.object(_.map(colors, function (color, key) {
             for (var i = 0; i < self.height; i++) {
                 for (var j = 0; j < self.width; j++) {
-                    var pixel = get(i, j, color);
+                    var pixel = self.get(i, j, color);
                     if (pixel > maxValue) {
                         maxValue = pixel;
                     }
@@ -121,91 +131,58 @@ ImageRecognitionLab.RgbMap = function (width, height, imageData) {
         }));
     }
 
-    function transformByPixel(fn, colors, rgbMap) {
+    RgbMap.prototype.transformByPixel = function (fn, colors, rgbMap) {
+        var self = this;
         var result = rgbMap;
         if (result === undefined) {
-            result = new ImageRecognitionLab.RgbMap(self.width, self.height);
+            result = new this.constructor(self.width, self.height);
         }
         _.each(colors, function (colorValue, colorKey) {
             for (var i = 0; i < self.height; i++) {
                 for (var j = 0; j < self.width; j++) {
-                    var newValue = fn(get(i, j, colorValue), colorValue, colorKey);
-                    result.set(i, j, colorValue, newValue);
+                    var newValue = fn(self.get(i, j, colorValue), colorValue, colorKey);
+                    result.set(i, j, newValue, colorValue);
                 }
             }
         });
         return result;
     }
 
-    function transformByCore(coreSize, memo, colors, fnProcess, fnRes) {
-        var result = new ImageRecognitionLab.RgbMap(self.width, self.height);
-        _.each(colors, function (colorValue, colorKey) {
-            for (var i = 0; i < self.height; i++) {
-                for (var j = 0; j < self.width; j++) {
-                    var localMemo = memo;
-                    var newValue = processPixelUsingCore(i, j, coreSize, localMemo, colorValue, fnProcess, fnRes);
-                    result.set(i, j, colorValue, newValue);
+    RgbMap.prototype.transformByCore = (function() {
+        var f = function (coreSize, memo, colors, fnProcess, fnRes) {
+            var result = new this.constructor(this.width, this.height);
+            var self = this;
+            _.each(colors, function (colorValue, colorKey) {
+                for (var i = 0; i < self.height; i++) {
+                    for (var j = 0; j < self.width; j++) {
+                        var localMemo = memo;
+                        var newValue = processPixelUsingCore.call(self, i, j, coreSize, localMemo, colorValue, fnProcess, fnRes);
+                        result.set(i, j, newValue, colorValue);
+                    }
+                }
+            });
+            return result;
+        }
+
+        function processPixelUsingCore(i, j, coreSize, memo, color, fnProcess, fnRes) {
+            var halfSize = (coreSize - 1) / 2;
+            for (var k = -halfSize; k <= halfSize; k++) {
+                for (var p = -halfSize; p <= halfSize; p++) {
+                    var absI = i + k;
+                    var absJ = j + p;
+                    if ((absI < 0) || (absJ < 0) || (absI >= this.height) || (absJ >= this.width)) {
+                        return this.get(i, j, color);
+                    }
+                    var coreI = k + halfSize;
+                    var coreJ = p + halfSize;
+                    fnProcess(absI, absJ, coreI, coreJ, memo, color);
                 }
             }
-        });
-        return result;
-    }
-
-    function processPixelUsingCore(i, j, coreSize, memo, color, fnProcess, fnRes) {
-        var halfSize = (coreSize - 1) / 2;
-        for (var k = -halfSize; k <= halfSize; k++) {
-            for (var p = -halfSize; p <= halfSize; p++) {
-                var absI = i + k;
-                var absJ = j + p;
-                if ((absI < 0) || (absJ < 0) || (absI >= self.height) || (absJ >= self.width)) {
-                    return get(i, j, color);
-                }
-                var coreI = k + halfSize;
-                var coreJ = p + halfSize;
-                fnProcess(absI, absJ, coreI, coreJ, memo, color);
-            }
+            return fnRes(memo);
         }
-        return fnRes(memo);
-    }
 
-    function toGray() {
-        var result = new ImageRecognitionLab.RgbMap(self.width, self.height);
-        for (var i = 0; i < self.height; i++) {
-            for (var j = 0; j < self.width; j++) {
-                var newValue = getBrightness(i, j)
-                result.set(i, j, Color.RED, newValue);
-                result.set(i, j, Color.GREEN, newValue);
-                result.set(i, j, Color.BLUE, newValue);
-            }
-        }
-        return result;
-    }
+        return f;
+    })();
 
-    return {
-        width: self.width,
-
-        height: self.height,
-
-        count: self.count,
-
-        get: get,
-
-        set: set,
-
-        populateImageData: populateImageData,
-
-        getBrightness: getBrightness,
-
-        min: min,
-
-        max: max,
-
-        transformByPixel: transformByPixel,
-
-        transformByCore: transformByCore,
-
-        average: average,
-
-        toGray: toGray,
-    }
-}
+    return RgbMap;
+})();

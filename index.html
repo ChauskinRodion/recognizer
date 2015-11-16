@@ -1,4 +1,4 @@
-<html itemscope="" itemtype="http://schema.org/WebPage" lang="ru">
+﻿<html itemscope="" itemtype="http://schema.org/WebPage" lang="ru">
 <head>
     <meta charset="utf-8">
     <link rel="stylesheet" type="text/css" href="content/site.css"/>
@@ -12,7 +12,7 @@
 <body>
     <div class="panel input-panel row">
         <div id="file_input_wrapper" class="col-md-6">
-            <input type="file" id="picture" accept="image/jpeg" />
+            <input type="file" id="picture" accept="image/jpeg/gif" />
         </div>
         <fieldset class="filters">
             <label><input type="radio" name="filter" value="linear_color_correction">Цветовая линейная коррекция</label>
@@ -25,7 +25,8 @@
             <label><input type="radio" name="filter" value="adaptiveBinary">Адаптивная бинаризация</label>
             <label><input type="radio" name="filter" value="sobel">Оператор Собеля</label>
             <label><input type="radio" name="filter" value="prewitt">Оператор Превитта</label>
-            <button id="btn_run">Run</button>
+            <button id="btn_filter">Filter</button>
+            <button id="btn_findAreas">Find areas</button>
         </fieldset>
     </div>
     <div class="panel output-panel row">
@@ -33,57 +34,99 @@
         <canvas id="image_out" class="col-xs-6 col-sm-6 col-md-6 col-lg-6 pull-right"></canvas>
     </div>
 
+    <script src="scripts/utils.js"></script>
     <script src="scripts/libs/underscore.js"></script>
     <script src="scripts/colorEnum.js"></script>
     <script src="scripts/rgbMap.js"></script>
+    <script src="scripts/monoRgbMap.js"></script>
+    <script src="scripts/area.js"></script>
+    <script src="scripts/areaMap.js"></script>
     <script src="scripts/imageManager.js"></script>
     <script src="scripts/processingManager.js"></script>
-    <script>
-        $(document).on('ready', function () {
-            $("#picture").fileinput({
-                showCaption: true,
-                showRemove: true,
-                showUpload: false
+<script>
+    $(document).on('ready', function() {
+        $("#picture").fileinput({
+            showCaption: true,
+            showRemove: true,
+            showUpload: false
+        });
+    });
+    $("#btn_filter").on('click', function() {
+        const fakePathString = "C:\\fakepath\\";
+        var fakePath = $("#picture").val();
+        filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
+        ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
+                var rgbMap = result;
+                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
+                var newRgbMap = null;
+                var filter = $("input[name='filter']:checked").val();
+                if (filter === "linear_color_correction") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(rgbMap);
+                } else if (filter === "grayworld_color_correction") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.grayWorldAdjustmentFilter(rgbMap);
+                } else if (filter === "grayscale") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(rgbMap);
+                } else if (filter === "filter") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.blurFilter(rgbMap);
+                } else if (filter === "median") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.medianFilter(rgbMap);
+                } else if (filter === "harmonicMean") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.harmonicMeanFilter(rgbMap);
+                } else if (filter === "binary") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(rgbMap);
+                } else if (filter === "adaptiveBinary") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.adaptiveBinaryFilter(rgbMap);
+                } else if (filter === "sobel") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.sobelFilter(rgbMap);
+                } else if (filter === "prewitt") {
+                    newRgbMap = ImageRecognitionLab.ProcessingManager.prewittFilter(rgbMap);
+                } else {
+                    throw new Error("incorrect filter");
+                }
+                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), newRgbMap);
+            },
+            function() {
+                console.log("cannot load image");
             });
+    });
+    $("#btn_findAreas").on('click', function() {
+        const fakePathString = "C:\\fakepath\\";
+        var fakePath = $("#picture").val();
+        filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
+        ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
+            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
+            var rgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(result);
+            var monoRgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(rgbMap);
+            var binaryRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(monoRgbMap);
+            var filteredBinaryRgbMap = ImageRecognitionLab.ProcessingManager.medianFilter(binaryRgbMap);
+            //var core = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            //    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]];
+            //var rgbMapAfterDilation = ImageRecognitionLab.ProcessingManager.morphologicalAnd(filteredBinaryRgbMap, core);
+            //var rgbMapAfterErosion = ImageRecognitionLab.ProcessingManager.morphologicalOr(rgbMapAfterDilation, core);
+            var core = [
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0]
+            ];
+            var rgbMapAfterMorphology = ImageRecognitionLab.ProcessingManager.morphologicalOr(filteredBinaryRgbMap, core);
+            //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), rgbMapAfterMorphology);
+
+            var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology);
+            areaMap.circle(result, { red: 255, green: 0, blue: 0 });
+            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
         });
-        $("#btn_run").on('click', function () {
-            const fakePathString = "C:\\fakepath\\";
-            var fakePath = $("#picture").val();
-            filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
-            ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
-                    var rgbMap = result.toGray();
-                    ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
-                    var newRgbMap = null;
-                    var filter = $("input[name='filter']:checked").val();
-                    if (filter === "linear_color_correction") {
-                        newRgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(rgbMap);
-                    } else if (filter === "grayworld_color_correction") {
-                        newRgbMap = ImageRecognitionLab.ProcessingManager.grayWorldAdjustmentFilter(rgbMap);
-                    } else if (filter === "grayscale") {
-                        newRgbMap = rgbMap.toGray();
-                    } else if (filter === "filter") {
-                        newRgbMap = ImageRecognitionLab.ProcessingManager.blurFilter(rgbMap);
-                    } else if (filter === "median") {
-                        newRgbMap = ImageRecognitionLab.ProcessingManager.medianFilter(rgbMap);
-                    } else if (filter === "harmonicMean") {
-                        newRgbMap = ImageRecognitionLab.ProcessingManager.harmonicMeanFilter(rgbMap);
-                    } else if (filter === "binary") {
-                        newRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(rgbMap);
-                    } else if (filter === "adaptiveBinary") {
-                        newRgbMap = ImageRecognitionLab.ProcessingManager.adaptiveBinaryFilter(rgbMap);
-                    } else if (filter === "sobel") {
-                        newRgbMap = ImageRecognitionLab.ProcessingManager.sobelFilter(rgbMap);
-                    } else if (filter === "prewitt") {
-                        newRgbMap = ImageRecognitionLab.ProcessingManager.prewittFilter(rgbMap);
-                    } else {
-                        throw new Error("incorrect filter");
-                    }
-                    ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), newRgbMap);
-                },
-                function() {
-                    console.log("cannot load image");
-                });
-        });
-    </script>
+    });
+    </script> 
 </body>
 </html>

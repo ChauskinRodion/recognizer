@@ -5,8 +5,8 @@ var ImageRecognitionLab = ImageRecognitionLab || {};
 ImageRecognitionLab.ProcessingManager = (function () {
 
     function linearCorrectionFilter(rgbMap) {
-        var minValues = rgbMap.min();
-        var maxValues = rgbMap.max();
+        var minValues = rgbMap.min(ImageRecognitionLab.ColorEnum);
+        var maxValues = rgbMap.max(ImageRecognitionLab.ColorEnum);
         var newRgbMap = rgbMap.transformByPixel(function (item, colorValue, colorKey) {
             return Math.round((item - minValues[colorKey]) * (255 / (maxValues[colorKey] - minValues[colorKey])));
         }, ImageRecognitionLab.ColorEnum);
@@ -14,7 +14,7 @@ ImageRecognitionLab.ProcessingManager = (function () {
     }
 
     function grayWorldAdjustmentFilter(rgbMap) {
-        var averageValues = rgbMap.average();
+        var averageValues = rgbMap.average(ImageRecognitionLab.ColorEnum);
         var average = _.reduce(averageValues, function (memo, item) {
             return memo + item;
         }, 0) / 3;
@@ -28,6 +28,17 @@ ImageRecognitionLab.ProcessingManager = (function () {
         return function (item, colorValue, colorKey) {
             return Math.round(item * (average / averageForLevel));
         }
+    }
+
+    function toMonochrome(rgbMap) {
+        var result = new ImageRecognitionLab.MonoRgbMap(rgbMap.width, rgbMap.height);
+        for (var i = 0; i < rgbMap.height; i++) {
+            for (var j = 0; j < rgbMap.width; j++) {
+                var newValue = rgbMap.getBrightness(i, j);
+                result.set(i, j, newValue);
+            }
+        }
+        return result;
     }
 
     function blurFilter(rgbMap) {
@@ -47,7 +58,7 @@ ImageRecognitionLab.ProcessingManager = (function () {
     }
 
     function medianFilter(rgbMap) {
-        var coreSize = 3;
+        var coreSize = 5;
         var memo = [];
         return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
             function (absI, absJ, coreI, coreJ, memo, color) {
@@ -79,14 +90,14 @@ ImageRecognitionLab.ProcessingManager = (function () {
     }
 
     function binaryFilter(rgbMap) {
-      var coreSize = 5;
-      var memo = { sum: 0 };
-      return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
-        function (absI, absJ, coreI, coreJ, memo, color) {
-          memo.sum += rgbMap.get(absI, absJ, color);
+        var coreSize = 3;
+        var memo = { sum: 0 };
+        return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
+            function (absI, absJ, coreI, coreJ, memo, color) {
+            memo.sum += rgbMap.get(absI, absJ, color);
         },
         function (memo) {
-          var res = memo.sum / (coreSize*coreSize);
+          var res = memo.sum / (coreSize * coreSize);
           memo.sum = 0;
           return res > BINARY_LIMIT ? 255 : 0;
         });
@@ -152,15 +163,52 @@ ImageRecognitionLab.ProcessingManager = (function () {
             });
     }
 
+    function morphologicalOr(rgbMap, core) {
+        var coreSize = core[0].length;
+        var memo = { isBlack: false };
+        return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
+            function (absI, absJ, coreI, coreJ, memo, color) {
+                var pixelValue = rgbMap.get(absI, absJ, color);
+                if ((pixelValue === 0) && (core[coreI][coreJ] === 1)) {
+                    memo.isBlack = true;
+                }
+            },
+            function (memo) {
+                var res = memo.isBlack ? 0 : 255;
+                memo.isBlack = false;
+                return res;
+            });
+    }
+
+    function morphologicalAnd(rgbMap, core) {
+        var coreSize = core[0].length;
+        var memo = { isBlackCount: 0 };
+        return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
+            function (absI, absJ, coreI, coreJ, memo, color) {
+                var pixelValue = rgbMap.get(absI, absJ, color);
+                if ((pixelValue === 0) && (core[coreI][coreJ] === 1)) {
+                    memo.isBlack++;
+                }
+            },
+            function (memo) {
+                var res = memo.isBlack === (coreSize * coreSize) ? 0 : 255;
+                memo.isBlack = 0;
+                return res;
+            });
+    }
+
     return {
         linearCorrectionFilter: linearCorrectionFilter,
         grayWorldAdjustmentFilter: grayWorldAdjustmentFilter,
+        toMonochrome: toMonochrome,
         blurFilter: blurFilter,
         medianFilter: medianFilter,
         harmonicMeanFilter: harmonicMeanFilter,
         binaryFilter: binaryFilter,
         adaptiveBinaryFilter: adaptiveBinaryFilter,
         sobelFilter: sobelFilter,
-        prewittFilter: prewittFilter
-}
+        prewittFilter: prewittFilter,
+        morphologicalOr: morphologicalOr,
+        morphologicalAnd: morphologicalAnd,
+    }
 })();
