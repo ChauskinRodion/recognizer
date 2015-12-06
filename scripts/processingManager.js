@@ -1,6 +1,4 @@
-﻿BINARY_LIMIT = 255 / 2;
-
-var ImageRecognitionLab = ImageRecognitionLab || {};
+﻿var ImageRecognitionLab = ImageRecognitionLab || {};
 
 ImageRecognitionLab.ProcessingManager = (function () {
 
@@ -90,6 +88,7 @@ ImageRecognitionLab.ProcessingManager = (function () {
     }
 
     function binaryFilter(rgbMap) {
+        var threshold = rgbMap.getBrightnessThreshold();
         var coreSize = 3;
         var memo = { sum: 0 };
         return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
@@ -99,7 +98,7 @@ ImageRecognitionLab.ProcessingManager = (function () {
         function (memo) {
           var res = memo.sum / (coreSize * coreSize);
           memo.sum = 0;
-          return res > BINARY_LIMIT ? 255 : 0;
+          return res > threshold ? 255 : 0;
         });
     }
 

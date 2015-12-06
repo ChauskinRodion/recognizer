@@ -58,7 +58,7 @@
         var fakePath = $("#picture").val();
         filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
         ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
-                var rgbMap = result;
+            var rgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(result);
                 ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
                 var newRgbMap = null;
                 var filter = $("input[name='filter']:checked").val();

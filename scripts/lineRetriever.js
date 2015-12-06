@@ -24,10 +24,20 @@ ImageRecognitionLab.LineRetriever = (function () {
             }
         }
 
+        var counts = [];
+        _.each(accumulator, function (rList) {
+            _.each(rList, function (item) {
+                if (item.count > 0) {
+                    counts.push(item.count);
+                }
+            });
+        });
+        var threshold = ImageRecognitionLab.otsuThreshold(counts);
+
         var result = [];
         _.each(accumulator, function (rList, anglePart) {
             result[anglePart] = _.reject(rList, function (item) {
-                return item.count <= 100;
+                return item.count <= threshold;
             });
         });
 

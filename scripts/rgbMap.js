@@ -84,6 +84,16 @@ ImageRecognitionLab.RgbMap = (function () {
             + 0.11 * this.get(i, j, ImageRecognitionLab.ColorEnum.BLUE);
     }
 
+    RgbMap.prototype.getBrightnessThreshold = function () {
+        var data = [];
+        for (var i = 0; i < this.height; i++) {
+            for (var j = 0; j < this.width; j++) {
+                data.push(Math.round(this.getBrightness(i, j)));
+            }
+        }
+        return ImageRecognitionLab.otsuThreshold(data);
+    }
+
     RgbMap.prototype.average = function (colors) {
         var self = this;
         return _.object(_.map(colors, function (colorValue, colorKey) {

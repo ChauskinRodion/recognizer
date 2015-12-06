@@ -21,6 +21,16 @@ ImageRecognitionLab.MonoRgbMap = (function () {
         return this.get(i, j);
     }
 
+    MonoRgbMap.prototype.getBrightnessThreshold = function () {
+        var data = [];
+        for (var i = 0; i < this.height; i++) {
+            for (var j = 0; j < this.width; j++) {
+                data.push(Math.round(this.get(i, j)));
+            }
+        }
+        return ImageRecognitionLab.otsuThreshold(data);
+    }
+
     MonoRgbMap.prototype.average = function () {
         return ImageRecognitionLab.MonoRgbMap.superclass.average.call(this, ImageRecognitionLab.ColorEnumUtil.getColor("RED"));
     }
