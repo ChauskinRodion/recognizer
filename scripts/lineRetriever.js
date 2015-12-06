@@ -1,8 +1,8 @@
 ﻿var ImageRecognitionLab = ImageRecognitionLab || {};
 
 ImageRecognitionLab.LineRetriever = (function () {
-    this.angleCount = 128;
-    this.rStep = 1;
+    this.angleCount = 32;
+    this.rStep = 2;
     this.precision = 3;
 
     function findLines(rgbMap) {
@@ -15,8 +15,9 @@ ImageRecognitionLab.LineRetriever = (function () {
             }
         }
 
-        for (var i = 0; i < rgbMap.height; i++) {
-            for (var j = 0; j < rgbMap.width; j++) {
+        var border = 20;
+        for (var i = border; i < rgbMap.height - border; i++) {
+            for (var j = border; j < rgbMap.width - border; j++) {
                 var pixel = rgbMap.get(i, j);
                 if (pixel === 255) {
                     vote(i, j, accumulator);
@@ -28,11 +29,26 @@ ImageRecognitionLab.LineRetriever = (function () {
         _.each(accumulator, function (rList) {
             _.each(rList, function (item) {
                 if (item.count > 0) {
-                    counts.push(item.count);
+                    if (counts[item.count]) {
+                        counts[item.count]++;
+                    } else {
+                        counts[item.count] = 1;
+                    }
                 }
             });
         });
-        var threshold = ImageRecognitionLab.otsuThreshold(counts);
+
+        var acc = 0;
+        var threshold = 1;
+        for (var i = counts.length - 1; i >= 0; i--) {
+            if (acc >= 25) {
+                break;
+            }
+            if (counts[i]) {
+                acc += counts[i];
+                threshold = i;
+            }
+        }
 
         var result = [];
         _.each(accumulator, function (rList, anglePart) {
@@ -48,7 +64,7 @@ ImageRecognitionLab.LineRetriever = (function () {
         for (var i = 0; i < rgbMap.height; i++) {
             _.each(accumulator, function (rList, anglePart) {
                 _.each(rList, function (r) {
-                    var resolvedAngle = 2 * Math.PI * anglePart / angleCount;
+                    var resolvedAngle = Math.PI * anglePart / angleCount;
                     var j = Math.round((r.rMin - i * Math.sin(resolvedAngle)) / Math.cos(resolvedAngle));
                     drawAroundPixel(i, j, rgbMap, color);
                 });
@@ -75,7 +91,7 @@ ImageRecognitionLab.LineRetriever = (function () {
     }
 
     function vote(i, j, accumulator) {
-        var step = 2 * Math.PI / angleCount;
+        var step = Math.PI / angleCount;
         for (var anglePart = 0; anglePart < this.angleCount; anglePart++) {
             var resolvedAngle = step * anglePart;
             var expr = j * Math.cos(resolvedAngle) + i * Math.sin(resolvedAngle);
@@ -85,13 +101,15 @@ ImageRecognitionLab.LineRetriever = (function () {
             if (item) {
                 item.count++;
             } else {
-                console.log("посос");
+
             }
         }
     }
 
     return {
         findLines: findLines,
-        drawLines: drawLines
+        drawLines: drawLines,
+        resolveMaxR: resolveMaxR,
+        angleCount: angleCount
     };
 })();

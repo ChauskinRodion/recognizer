@@ -55,3 +55,65 @@ ImageRecognitionLab.otsuThreshold = function (arr) {
     return threshold + min;
 }
 
+ImageRecognitionLab.buildHistogram = function(arr) {
+    var max = _.max(arr);
+    var min = _.min(arr);
+
+    var histWidth = max - min + 1;
+    var hist = [];
+    for (var i = 0; i < histWidth; i++) {
+        hist[i] = 0;
+    }
+    for (var i = 0; i < arr.length; i++) {
+        hist[arr[i] - min]++;
+    }
+    return hist;
+}
+
+ImageRecognitionLab.smoothOverHistagram = function (hist, step) {
+    var smoothHist = [];
+    for (var i = 0; i < hist.length; i++) {
+        var sum = 0;
+        var count = 0;
+        for (var k = -step; k < step; k++) {
+            var tmpValue = hist[i + k];
+            if (i + k >= 0 && i + k < hist.length) {
+                sum += tmpValue;
+                count++;
+            }
+        }
+        var smoothValue = sum / count;
+        smoothHist.push(smoothValue);
+    }
+    return smoothHist;
+}
+
+ImageRecognitionLab.getThresholdByPercent = function(hist, percent) {
+    var maxValue = _.max(hist);
+    var highValues = [];
+
+    _.each(hist, function(value) {
+        if (1 - (value / maxValue) < percent / 100) {
+            highValues.push(value);
+        }
+    });
+
+    highValues.sort();
+    return highValues[0];
+}
+
+ImageRecognitionLab.getThresholdByCountAndPercent = function (hist, count, percent) {
+    var maxValue = _.max(hist);
+    var highValues = [];
+
+    _.each(hist, function (value) {
+        if (1 - (value / maxValue) < percent / 100) {
+            highValues.push(value);
+        }
+    });
+
+    highValues.sort();
+    highValues = highValues.reverse();
+    highValues = _.first(highValues, count);
+    return _.min(highValues);
+}

@@ -73,7 +73,7 @@ ImageRecognitionLab.ProcessingManager = (function () {
     }
 
     function harmonicMeanFilter(rgbMap) {
-        var coreSize = 3;
+        var coreSize = 5;
         var memo = { sum: 0 };
         return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,
             function (absI, absJ, coreI, coreJ, memo, color) {
@@ -87,8 +87,10 @@ ImageRecognitionLab.ProcessingManager = (function () {
             });
     }
 
-    function binaryFilter(rgbMap) {
-        var threshold = rgbMap.getBrightnessThreshold();
+    function binaryFilter(rgbMap, manualThreshold) {
+        var threshold = typeof manualThreshold !== 'undefined' 
+            ? manualThreshold 
+            : rgbMap.getBrightnessThreshold();
         var coreSize = 3;
         var memo = { sum: 0 };
         return rgbMap.transformByCore(coreSize, memo, ImageRecognitionLab.ColorEnum,

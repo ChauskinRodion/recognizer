@@ -57,8 +57,10 @@
         const fakePathString = "C:\\fakepath\\";
         var fakePath = $("#picture").val();
         filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
-        ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
-            var rgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(result);
+        ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function (result) {
+            var rgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(result);
+            rgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(rgbMap);
+                
                 ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
                 var newRgbMap = null;
                 var filter = $("input[name='filter']:checked").val();
@@ -157,18 +159,138 @@
             var rgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(result);
             var edges = ImageRecognitionLab.ProcessingManager.prewittFilter(rgbMap);
             var monoRgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(edges);
-            BINARY_LIMIT = 10;
-            var binaryRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(monoRgbMap);
-            BINARY_LIMIT = 255 / 2;
+            var binaryRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(monoRgbMap, 10);
+
             var core = [[1, 1, 1],
                 [1, 1, 1],
                 [1, 1, 1]];
             var rgbMapAfterErosion = ImageRecognitionLab.ProcessingManager.morphologicalOr(binaryRgbMap, core);
-            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMapAfterErosion);
+            //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMapAfterErosion);
+
+            //find lines on image
             var accum = ImageRecognitionLab.LineRetriever.findLines(rgbMapAfterErosion);
-            ImageRecognitionLab.LineRetriever.drawLines(accum, result, {red: 0, green: 0, blue: 255});
+
+            // view all parallel lines. For each group of parallel lines we find two ones with max distance between them and remove all except these ones.
+            var maxR = ImageRecognitionLab.LineRetriever.resolveMaxR(result);
+            for (var i = 0; i < accum.length; i++) {
+                if (accum[i].length) {
+                    if (accum[i].length !== 1) {
+                        accum[i] = _.sortBy(accum[i], function (rItem) {
+                            return rItem.rMax;
+                        });
+                        var first = _.first(accum[i]);
+                        var last = _.last(accum[i]);
+                        accum[i] = [];
+                        if (Math.abs(first.rMax - last.rMax) > 0.1 * maxR) {
+                            accum[i].push(first);
+                            accum[i].push(last);
+                        }
+                    }
+                }
+            }
+
+            //create array of angles for parallel lines
+            var parallels = [];
+            for (var i = 0; i < accum.length; i++) {
+                if (accum[i].length) {
+                    if (accum[i].length !== 1) {
+                        parallels.push(i);
+                    }
+                }
+            }
+
+            //find perpendicular lines
+            var perpendiculars = [];
+            for (var i = 0; i < parallels.length; i++) {
+                for (var j = i + 1; j < parallels.length; j++) {
+                    //if (j !== i) {
+                        var angleBetw = Math.abs(parallels[i] - parallels[j]) / ImageRecognitionLab.LineRetriever.angleCount;
+                        if (Math.abs(angleBetw - 0.5) < 0.05) {
+                            perpendiculars.push({ first: parallels[i], second: parallels[j] });
+                        }
+                    //}
+                }
+            }
+
+            //logs. only for test purposes
+            console.log("perpendiculars: ");
+            _.each(perpendiculars, function(val, index) {
+                console.log(val.first + ", " + val.second);
+            });
+
+            //logs. only for test purposes
+            var count = 0;
+            _.each(accum, function (rList, anglePart) {
+                _.each(rList, function (r) {
+                    console.log("line" + (count++) + ". anglePart = " + anglePart + ", r = " + r.rMin);
+                });
+            });
             
-            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
+
+            ImageRecognitionLab.LineRetriever.drawLines(accum, result, { red: 0, green: 0, blue: 255 });
+            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
+
+            // rotate and cut
+       
+            if (perpendiculars.length) {
+                var val = perpendiculars[0];
+                var minAngle = val.first < val.second ? val.first : val.second;
+                var maxAngle = val.first > val.second ? val.first : val.second;
+                var fi = -Math.PI * minAngle / ImageRecognitionLab.LineRetriever.angleCount;
+                var matrix = [[1, -Math.tan(fi / 2)],
+                    [0, 1]];
+                var testRgb = rgbMap.multiplyOnMatrix(matrix);
+                matrix = [[1, 0],
+                    [Math.sin(fi), 1]];
+                testRgb = testRgb.multiplyOnMatrix(matrix);
+                matrix = [[1, -Math.tan(fi / 2)],
+                    [0, 1]];
+                testRgb = testRgb.multiplyOnMatrix(matrix);
+
+                var xs = accum[minAngle];
+                var xMin = Math.round(xs[0].rMax < xs[1].rMax ? xs[0].rMax : xs[1].rMax) - 5;
+                var xMax = Math.round(xs[0].rMax > xs[1].rMax ? xs[0].rMax : xs[1].rMax) - 20;
+                var ys = accum[maxAngle];
+                var yMin = Math.round(ys[0].rMax < ys[1].rMax ? ys[0].rMax : ys[1].rMax) + 5;
+                var yMax = Math.round(ys[0].rMax > ys[1].rMax ? ys[0].rMax : ys[1].rMax) + 5;
+                testRgb = testRgb.cut({ left: xMin, right: xMax, top: yMin, bottom: yMax });
+
+                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), testRgb);
+
+                //find strings
+                var zoomed = testRgb.zoom(3, 3);
+                monoRgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(zoomed);
+                binaryRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(monoRgbMap);
+                core = [[1, 1, 1],
+                    [1, 1, 1],
+                    [1, 1, 1]];
+                rgbMapAfterErosion = ImageRecognitionLab.ProcessingManager.morphologicalAnd(binaryRgbMap, core);
+                var filteredBinaryRgbMap = ImageRecognitionLab.ProcessingManager.medianFilter(rgbMapAfterErosion);
+                core = [
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1, 1, 1],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0]
+                ];
+                var rgbMapAfterMorphology = ImageRecognitionLab.ProcessingManager.morphologicalOr(filteredBinaryRgbMap, core);
+                rgbMapAfterMorphology = ImageRecognitionLab.ProcessingManager.morphologicalOr(rgbMapAfterMorphology, core);
+                var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology);
+                areaMap.calculateArea();
+                areaMap.calculatePerimeter(rgbMapAfterMorphology);
+                areaMap.calculateMassCenter();
+                var sortedByArea = _.sortBy(areaMap.areas, function (area) {
+                    return area.area;
+                });
+                areaMap.areas = _.first(sortedByArea.reverse(), 15);
+                areaMap.circle(zoomed, { red: 255, green: 0, blue: 0 });
+
+                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), zoomed);
+            }
+            
+            //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
         });
     });
     </script> 

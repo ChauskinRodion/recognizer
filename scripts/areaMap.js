@@ -101,6 +101,7 @@ ImageRecognitionLab.AreaMap = (function () {
             area.calculatePerimeter(rgbMap);
         });
     }
+
     AreaMap.prototype.calculateMassCenter = function () {
         _.each(this.areas, function (area) {
             area.calculateMassCenter();
