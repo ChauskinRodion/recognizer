@@ -90,5 +90,22 @@ ImageRecognitionLab.AreaMap = (function () {
         });
     }
 
+    AreaMap.prototype.calculateArea = function() {
+        _.each(this.areas, function (area) {
+            area.calculateArea();
+        });
+    }
+
+    AreaMap.prototype.calculatePerimeter = function (rgbMap) {
+        _.each(this.areas, function (area) {
+            area.calculatePerimeter(rgbMap);
+        });
+    }
+    AreaMap.prototype.calculateMassCenter = function () {
+        _.each(this.areas, function (area) {
+            area.calculateMassCenter();
+        });
+    }
+
     return AreaMap;
 })();

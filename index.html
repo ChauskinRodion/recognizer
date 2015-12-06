@@ -27,6 +27,7 @@
             <label><input type="radio" name="filter" value="prewitt">Оператор Превитта</label>
             <button id="btn_filter">Filter</button>
             <button id="btn_findAreas">Find areas</button>
+            <button id="btn_findDoc">Find document</button>
         </fieldset>
     </div>
     <div class="panel output-panel row">
@@ -43,6 +44,7 @@
     <script src="scripts/areaMap.js"></script>
     <script src="scripts/imageManager.js"></script>
     <script src="scripts/processingManager.js"></script>
+    <script src="scripts/lineRetriever.js"></script>
 <script>
     $(document).on('ready', function() {
         $("#picture").fileinput({
@@ -122,8 +124,50 @@
             var rgbMapAfterMorphology = ImageRecognitionLab.ProcessingManager.morphologicalOr(filteredBinaryRgbMap, core);
             //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), rgbMapAfterMorphology);
 
-            var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology);
+            var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology); 
+            areaMap.calculateArea();
+            areaMap.calculatePerimeter(rgbMapAfterMorphology);
+            areaMap.calculateMassCenter();
+            var startTextX = Math.round(0.4 * rgbMap.width);
+            var endTextX = Math.round(rgbMap.width - (0.1 * rgbMap.width));
+            var startTextY = Math.round(0.2 * rgbMap.height);
+            areaMap.areas = _.filter(areaMap.areas, function (area) {
+                return area.minY >= startTextY;
+            });
+            areaMap.areas = _.filter(areaMap.areas, function (area) {
+                return area.minX >= startTextX;
+            });
+            areaMap.areas = _.filter(areaMap.areas, function (area) {
+                return area.maxX <= endTextX;
+            });
+            var sortedByArea = _.sortBy(areaMap.areas, function (area) {
+                return area.area;
+            });
+            areaMap.areas = _.first(sortedByArea.reverse(), 12);
             areaMap.circle(result, { red: 255, green: 0, blue: 0 });
+            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
+        });
+    });
+    $("#btn_findDoc").on('click', function() {
+        const fakePathString = "C:\\fakepath\\";
+        var fakePath = $("#picture").val();
+        filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
+        ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
+            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
+            var rgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(result);
+            var edges = ImageRecognitionLab.ProcessingManager.prewittFilter(rgbMap);
+            var monoRgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(edges);
+            BINARY_LIMIT = 10;
+            var binaryRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(monoRgbMap);
+            BINARY_LIMIT = 255 / 2;
+            var core = [[1, 1, 1],
+                [1, 1, 1],
+                [1, 1, 1]];
+            var rgbMapAfterErosion = ImageRecognitionLab.ProcessingManager.morphologicalOr(binaryRgbMap, core);
+            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMapAfterErosion);
+            var accum = ImageRecognitionLab.LineRetriever.findLines(rgbMapAfterErosion);
+            ImageRecognitionLab.LineRetriever.drawLines(accum, result, {red: 0, green: 0, blue: 255});
+            
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
         });
     });
