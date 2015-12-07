@@ -11,6 +11,7 @@ ImageRecognitionLab.ImageManager = (function () {
         image.onerror = function () {
             deferred.reject();
         };
+        image.crossOrigin = 'anonymous';
         image.src = src;
         return deferred.promise();
     }
