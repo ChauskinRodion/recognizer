@@ -127,7 +127,6 @@
             ];
             var rgbMapAfterMorphology = ImageRecognitionLab.ProcessingManager.morphologicalOr(filteredBinaryRgbMap, core);
 
-
             var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology);
             areaMap.calculateArea();
             areaMap.calculatePerimeter(rgbMapAfterMorphology);
