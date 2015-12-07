@@ -8,6 +8,10 @@ ImageRecognitionLab.Area = (function () {
         this.maxX = null;
         this.minY = null;
         this.maxY = null;
+        this.area = null;
+        this.perimeter = null;
+        this.massCenterX = null;
+        this.massCenterY = null;
     }
 
     Area.prototype.addPixel = function(y, x) {
@@ -27,7 +31,7 @@ ImageRecognitionLab.Area = (function () {
     {
         this.maxX = this.getPixelX(0), this.minX = this.getPixelX(0);
         this.maxY = this.getPixelY(0), this.minY = this.getPixelY(0);
-        for (var j = 1; j < this.pixels.length; j++) {
+        for (var j = 1; j < this.pixels.length/2; j++) {
             var x = this.getPixelX(j);
             var y = this.getPixelY(j);
 
@@ -66,7 +70,54 @@ ImageRecognitionLab.Area = (function () {
 
         return circle;
     })();
-    
+
+    Area.prototype.calculateArea = function () {
+        if (this.area) {
+            return;
+        }
+        this.area = this.pixels.length/2;
+    }
+
+    Area.prototype.calculatePerimeter = function (rgbMap) {
+        if (this.perimeter) {
+            return;
+        }
+        this.perimeter = 0;
+        for (var j = 1; j < this.pixels.length/2; j++) {
+            var x = this.getPixelX(j);
+            var y = this.getPixelY(j);
+            var isEdge = false;
+            for (var k = -1; k < 1; k++) {
+                for (var l = -1; l < 1; l++) {
+                    var tmp = rgbMap.get(y + k, x + l);
+                    if (tmp === 255) {
+                        isEdge = true;
+                    }
+                }
+            }
+            if (isEdge) {
+                this.perimeter++;
+            }
+        }
+    }
+
+    Area.prototype.calculateMassCenter = function () {
+        if (this.massCenterX && this.massCenterY) {
+            return;
+        }
+        if (!this.area) {
+            this.calculateArea();
+        }
+        var massX = 0, massY = 0;
+        for (var j = 1; j < this.pixels.length / 2; j++) {
+            var x = this.getPixelX(j);
+            var y = this.getPixelY(j);
+            massX += x / this.area;
+            massY += y / this.area;
+        }
+        this.massCenterX = Math.round(massX);
+        this.massCenterY = Math.round(massY);
+    }
 
     return Area;
 })();

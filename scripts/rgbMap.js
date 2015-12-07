@@ -59,7 +59,11 @@ ImageRecognitionLab.RgbMap = (function () {
         }
     }
 
-    RgbMap.prototype.get = function(i, j, color) {
+    RgbMap.prototype.get = function (i, j, color) {
+        if ((i < 0 || i >= this.height) ||
+        (j < 0 || j >= this.width)) {
+            return -1;
+        }
         return this.pixels[i][j][color];
     }
 
@@ -82,6 +86,16 @@ ImageRecognitionLab.RgbMap = (function () {
         return 0.3 * this.get(i, j, ImageRecognitionLab.ColorEnum.RED)
             + 0.59 * this.get(i, j, ImageRecognitionLab.ColorEnum.GREEN)
             + 0.11 * this.get(i, j, ImageRecognitionLab.ColorEnum.BLUE);
+    }
+
+    RgbMap.prototype.getBrightnessThreshold = function () {
+        var data = [];
+        for (var i = 0; i < this.height; i++) {
+            for (var j = 0; j < this.width; j++) {
+                data.push(Math.round(this.getBrightness(i, j)));
+            }
+        }
+        return ImageRecognitionLab.otsuThreshold(data);
     }
 
     RgbMap.prototype.average = function (colors) {
@@ -129,6 +143,58 @@ ImageRecognitionLab.RgbMap = (function () {
             }
             return [key, maxValue];
         }));
+    }
+
+    RgbMap.prototype.multiplyOnMatrix = function (matrix) {
+        var self = this;
+        var result = new this.constructor(self.width, self.height);
+        for (var i = 0; i < self.height; i++) {
+            for (var j = 0; j < self.width; j++) {
+                var y = Math.round(j * matrix[1][0] + i * matrix[1][1]);
+                var x = Math.round(j * matrix[0][0] + i * matrix[0][1]);
+                var red = self.get(i, j, ImageRecognitionLab.ColorEnum.RED);
+                var green = self.get(i, j, ImageRecognitionLab.ColorEnum.GREEN);
+                var blue = self.get(i, j, ImageRecognitionLab.ColorEnum.BLUE);
+                result.set(y, x, red, ImageRecognitionLab.ColorEnum.RED);
+                result.set(y, x, green, ImageRecognitionLab.ColorEnum.GREEN);
+                result.set(y, x, blue, ImageRecognitionLab.ColorEnum.BLUE);
+            }
+        }
+        return result;
+    }
+
+    RgbMap.prototype.cut = function (params) {
+        var self = this;
+        var result = new this.constructor(params.right - params.left, params.bottom - params.top);
+        for (var i = 0; i < result.height; i++) {
+            for (var j = 0; j < result.width; j++) {
+                var red = self.get(i + params.top, j + params.left, ImageRecognitionLab.ColorEnum.RED);
+                var green = self.get(i + params.top, j + params.left, ImageRecognitionLab.ColorEnum.GREEN);
+                var blue = self.get(i + params.top, j + params.left, ImageRecognitionLab.ColorEnum.BLUE);
+                result.set(i, j, red, ImageRecognitionLab.ColorEnum.RED);
+                result.set(i, j, green, ImageRecognitionLab.ColorEnum.GREEN);
+                result.set(i, j, blue, ImageRecognitionLab.ColorEnum.BLUE);
+            }
+        }
+        return result;
+    }
+
+    RgbMap.prototype.zoom = function (sx, sy) {
+        var self = this;
+        var result = new this.constructor(sx * self.width, sy * self.height);
+        for (var i = 0; i < result.height; i++) {
+            for (var j = 0; j < result.width; j++) {
+                var x = Math.round(j / sx);
+                var y = Math.round(i / sy);
+                var red = self.get(y, x, ImageRecognitionLab.ColorEnum.RED);
+                var green = self.get(y, x, ImageRecognitionLab.ColorEnum.GREEN);
+                var blue = self.get(y, x, ImageRecognitionLab.ColorEnum.BLUE);
+                result.set(i, j, red, ImageRecognitionLab.ColorEnum.RED);
+                result.set(i, j, green, ImageRecognitionLab.ColorEnum.GREEN);
+                result.set(i, j, blue, ImageRecognitionLab.ColorEnum.BLUE);
+            }
+        }
+        return result;
     }
 
     RgbMap.prototype.transformByPixel = function (fn, colors, rgbMap) {
