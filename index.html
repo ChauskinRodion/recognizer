@@ -57,11 +57,11 @@
     $("#btn_filter").on('click', function() {
         const fakePathString = "C:\\fakepath\\";
         var fakePath = $("#picture").val();
-        filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
+        filePath = fakePath.replace(fakePathString, "");
         ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function (result) {
             var rgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(result);
             rgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(rgbMap);
-                
+
                 ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMap);
                 var newRgbMap = null;
                 var filter = $("input[name='filter']:checked").val();
@@ -97,7 +97,7 @@
     $("#btn_findAreas").on('click', function() {
         const fakePathString = "C:\\fakepath\\";
         var fakePath = $("#picture").val();
-        filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
+        filePath = fakePath.replace(fakePathString, "");
         ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
             var rgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(result);
@@ -127,7 +127,7 @@
             var rgbMapAfterMorphology = ImageRecognitionLab.ProcessingManager.morphologicalOr(filteredBinaryRgbMap, core);
 
 
-            var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology); 
+            var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology);
             areaMap.calculateArea();
             areaMap.calculatePerimeter(rgbMapAfterMorphology);
             areaMap.calculateMassCenter();
@@ -155,7 +155,7 @@
     $("#btn_findDoc").on('click', function() {
         const fakePathString = "C:\\fakepath\\";
         var fakePath = $("#picture").val();
-        filePath = navigator.platform === "MacIntel" ? 'test/lena_8.gif' : fakePath.replace(fakePathString, "");
+        filePath = fakePath.replace(fakePathString, "");
         ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
             var rgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(result);
@@ -227,13 +227,13 @@
                     console.log("line" + (count++) + ". anglePart = " + anglePart + ", r = " + r.rMin);
                 });
             });
-            
+
 
             ImageRecognitionLab.LineRetriever.drawLines(accum, result, { red: 0, green: 0, blue: 255 });
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
 
             // rotate and cut
-       
+
             if (perpendiculars.length) {
                 var val = perpendiculars[0];
                 var minAngle = val.first < val.second ? val.first : val.second;
@@ -291,10 +291,10 @@
 
                 ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), zoomed);
             }
-            
+
             //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
         });
     });
-    </script> 
+    </script>
 </body>
 </html>
