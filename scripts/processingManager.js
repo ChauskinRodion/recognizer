@@ -104,6 +104,25 @@ ImageRecognitionLab.ProcessingManager = (function () {
         });
     }
 
+    function binaryFilterWithoutArea(rgbMap, manualThreshold, thresholdCorrectionCoef) {
+        var threshold;
+        if(thresholdCorrectionCoef == undefined){
+            thresholdCorrectionCoef = 0;
+        }
+        if(typeof manualThreshold !== 'undefined'){
+            threshold = manualThreshold;
+        } else {
+            var brightnessThreshold = rgbMap.getBrightnessThreshold();
+            threshold = brightnessThreshold + brightnessThreshold * thresholdCorrectionCoef;
+        }
+        var coreSize = 3;
+        var memo = { sum: 0 };
+
+        return rgbMap.transformByPixel(function (value) {
+            return value >= threshold ? 255 : 0;
+        }, undefined, rgbMap);
+    }
+
     function adaptiveBinaryFilter(rgbMap) {
         var coreSize = 7;
         var coeff = 7;
@@ -211,5 +230,6 @@ ImageRecognitionLab.ProcessingManager = (function () {
         prewittFilter: prewittFilter,
         morphologicalOr: morphologicalOr,
         morphologicalAnd: morphologicalAnd,
+        binaryFilterWithoutArea: binaryFilterWithoutArea
     }
 })();

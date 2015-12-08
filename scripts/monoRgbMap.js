@@ -51,5 +51,46 @@ ImageRecognitionLab.MonoRgbMap = (function () {
         return ImageRecognitionLab.MonoRgbMap.superclass.transformByCore.call(this, coreSize, memo, ImageRecognitionLab.ColorEnumUtil.getColor("RED"), fnProcess, fnRes);
     }
 
+    /*
+    it needs debug
+    MonoRgbMap.prototype.getLowestColor = function() {
+        return MonoRgbMap.getExtremum(this.pixels, function(value, result){
+            if(value < result){
+                return true;
+            }
+            return false;
+        });
+    }
+
+    MonoRgbMap.prototype.getHighestColor = function() {
+        return MonoRgbMap.getExtremum(this.pixels, function(value, result){
+            if(value > result){
+                return true;
+            }
+            return false;
+        });
+    }
+
+    MonoRgbMap.getExtremum = function(pixels, comparer){
+        var superClass = ImageRecognitionLab.MonoRgbMap.superclass;
+        var color = ImageRecognitionLab.ColorEnumUtil.getColor("RED").RED;
+        var result = undefined;
+        if(pixels != undefined &&
+            pixels[0] != undefined &&
+            pixels[0][0] != undefined &&
+            pixels[0][0][color] != undefined) {
+            result = pixels[0][0][color];
+        }
+        for(var y = 0; y < superClass.height; y++){
+            for(var x = 0; x < superClass.width; x++){
+                var value = pixels[y][x][color];
+                if (comparer(value, result)){
+                    result = value;
+                }
+            }
+        }
+        return result;
+    }*/
+
     return MonoRgbMap;
 })();

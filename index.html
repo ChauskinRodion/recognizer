@@ -45,6 +45,7 @@
     <script src="scripts/imageManager.js"></script>
     <script src="scripts/processingManager.js"></script>
     <script src="scripts/lineRetriever.js"></script>
+    <script src="scripts/textFinder.js"></script>
 <script>
     $(document).on('ready', function() {
         $("#picture").fileinput({
@@ -124,7 +125,7 @@
                 [0, 0, 0, 0, 0]
             ];
             var rgbMapAfterMorphology = ImageRecognitionLab.ProcessingManager.morphologicalOr(filteredBinaryRgbMap, core);
-            //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), rgbMapAfterMorphology);
+
 
             var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology); 
             areaMap.calculateArea();
@@ -148,6 +149,7 @@
             areaMap.areas = _.first(sortedByArea.reverse(), 12);
             areaMap.circle(result, { red: 255, green: 0, blue: 0 });
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
+
         });
     });
     $("#btn_findDoc").on('click', function() {
