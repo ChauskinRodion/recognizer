@@ -110,7 +110,7 @@ ImageRecognitionLab.RgbMap = (function () {
                 result += lineSum / self.count;
             }
             return [colorKey, result];
-        })); 
+        }));
     }
 
     RgbMap.prototype.min = function(colors) {
@@ -213,6 +213,18 @@ ImageRecognitionLab.RgbMap = (function () {
         });
         return result;
     }
+
+    RgbMap.prototype.appendArea = function(area){
+
+      whiteArea = Array.apply(null, Array(this.width - area.width)).map(function(){return [255, 255, 255]});
+      var currentAreaPixels = area.pixels;
+      _.each(area.pixels, function(line, i){
+        currentAreaPixels[i] = line.concat(whiteArea)
+      });
+
+      this.pixels = this.pixels.concat(area.pixels);
+      this.height += area.height;
+    };
 
     RgbMap.prototype.transformByCore = (function() {
         var f = function (coreSize, memo, colors, fnProcess, fnRes) {
