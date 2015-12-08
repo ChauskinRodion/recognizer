@@ -135,22 +135,27 @@
             var endTextX = Math.round(rgbMap.width - (0.1 * rgbMap.width));
             var startTextY = Math.round(0.2 * rgbMap.height);
             areaMap.areas = _.filter(areaMap.areas, function (area) {
-                return area.minY >= startTextY;
-            });
-            areaMap.areas = _.filter(areaMap.areas, function (area) {
-                return area.minX >= startTextX;
-            });
-            areaMap.areas = _.filter(areaMap.areas, function (area) {
-                return area.maxX <= endTextX;
+                return area.minY >= startTextY && area.minX >= startTextX && area.maxX <= endTextX;
             });
             var sortedByArea = _.sortBy(areaMap.areas, function (area) {
                 return area.area;
             });
             areaMap.areas = _.first(sortedByArea.reverse(), 12);
-            areaMap.circle(result, { red: 255, green: 0, blue: 0 });
-            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
 
+            var areas = _.flatten(_.map(areaMap.areas, function(area){
+                return textFinder.splitTextLines(area, monoRgbMap)
+            }));
+
+            resultWidth = _.max(areas, function(x){return x.width}).width;
+            resultArea = new ImageRecognitionLab.RgbMap(resultWidth, 0);
+
+            _.each(areas, function(area){
+                resultArea.appendArea(area)
+            });
+
+            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), resultArea);
         });
+
     });
     $("#btn_findDoc").on('click', function() {
         const fakePathString = "C:\\fakepath\\";

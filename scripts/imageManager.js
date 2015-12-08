@@ -18,8 +18,8 @@ ImageRecognitionLab.ImageManager = (function () {
 
     function drawRgbMap(targetCanvasJQuery, rgbMap) {
         var targetCanvas = _.first(targetCanvasJQuery);
-        targetCanvas.width = rgbMap.width;
-        targetCanvas.height = rgbMap.height;
+        targetCanvas.width = Math.max(rgbMap.width, targetCanvas.width);
+        targetCanvas.height = Math.max(rgbMap.height, targetCanvas.height);
         var context = targetCanvas.getContext('2d');
         var imageData = context.createImageData(rgbMap.width, rgbMap.height);
         rgbMap.populateImageData(imageData);
