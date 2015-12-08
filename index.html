@@ -42,6 +42,7 @@
     <script src="scripts/monoRgbMap.js"></script>
     <script src="scripts/area.js"></script>
     <script src="scripts/areaMap.js"></script>
+    <script src="scripts/simpleAreaMap.js"></script>
     <script src="scripts/imageManager.js"></script>
     <script src="scripts/processingManager.js"></script>
     <script src="scripts/lineRetriever.js"></script>
@@ -148,6 +149,8 @@
             });
             areaMap.areas = _.first(sortedByArea.reverse(), 12);
             areaMap.circle(result, { red: 255, green: 0, blue: 0 });
+
+            var asd = textFinder.findLetters(areaMap, monoRgbMap);
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
 
         });
@@ -159,6 +162,7 @@
         ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
             var rgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(result);
+            var rgbMap = rgbMap.zoom(2, 2);
             var edges = ImageRecognitionLab.ProcessingManager.prewittFilter(rgbMap);
             var monoRgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(edges);
             var binaryRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(monoRgbMap, 10);
