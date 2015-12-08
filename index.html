@@ -143,6 +143,8 @@
             });
             areaMap.areas = _.first(sortedByArea.reverse(), 12);
 
+            var letters = textFinder.findLetters(areaMap, monoRgbMap);
+
             var areas = _.flatten(_.map(areaMap.areas, function(area){
                 return textFinder.splitTextLines(area, monoRgbMap)
             }));
