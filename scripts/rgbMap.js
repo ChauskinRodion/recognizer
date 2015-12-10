@@ -35,7 +35,7 @@ ImageRecognitionLab.RgbMap = (function () {
             for (var i = 0; i < height; i++) {
                 pixels[i] = new Array();
                 for (var j = 0; j < width; j++) {
-                  pixels[i][j] = color ? color :  [0, 0, 0]
+                  pixels[i][j] = color ? color : [0, 0, 0]
 
                 }
             }
