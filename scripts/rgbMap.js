@@ -1,16 +1,16 @@
 ﻿var ImageRecognitionLab = ImageRecognitionLab || {}
 
 ImageRecognitionLab.RgbMap = (function () {
-    function RgbMap(width, height, imageData) {
-        this.width = width;
-        this.height = height;
+    function RgbMap(width, height, imageData, color) {
+        this.width = Math.floor(width);
+        this.height = Math.floor(height);
         this.count = width * height;
 
         if (imageData !== undefined) {
             this.pixels = createRgbMap(width, height, imageData);
         }
         else {
-            this.pixels = createEmptyRgbMap(width, height);
+            this.pixels = createEmptyRgbMap(width, height, color);
         }
 
         function createRgbMap(width, height, imageData) {
@@ -30,15 +30,13 @@ ImageRecognitionLab.RgbMap = (function () {
             return pixels;
         }
 
-        function createEmptyRgbMap(width, height) {
+        function createEmptyRgbMap(width, height, color) {
             var pixels = new Array();
             for (var i = 0; i < height; i++) {
                 pixels[i] = new Array();
                 for (var j = 0; j < width; j++) {
-                    pixels[i][j] = new Array();
-                    pixels[i][j][0] = 0;
-                    pixels[i][j][1] = 0;
-                    pixels[i][j][2] = 0;
+                  pixels[i][j] = color ? color : [0, 0, 0]
+
                 }
             }
             return pixels;
@@ -177,15 +175,27 @@ ImageRecognitionLab.RgbMap = (function () {
             }
         }
         return result;
-    }
+    };
+
+    RgbMap.prototype.normalizeLetter = function(height, width) {
+      var sx = height / this.height,
+          sy = height / this.height;
+
+      var result = this.zoom(sx, sy);
+          result = ImageRecognitionLab.ProcessingManager.binaryFilter(result);
+
+      var whiteArea = new this.constructor(width - result.width, result.height, undefined, ImageRecognitionLab.Colors.WHITE);
+          result = result.appendMap(whiteArea);
+      return result;
+    };
 
     RgbMap.prototype.zoom = function (sx, sy) {
         var self = this;
         var result = new this.constructor(sx * self.width, sy * self.height);
         for (var i = 0; i < result.height; i++) {
             for (var j = 0; j < result.width; j++) {
-                var x = Math.round(j / sx);
-                var y = Math.round(i / sy);
+                var x = Math.floor(j / sx);
+                var y = Math.floor(i / sy);
                 var red = self.get(y, x, ImageRecognitionLab.ColorEnum.RED);
                 var green = self.get(y, x, ImageRecognitionLab.ColorEnum.GREEN);
                 var blue = self.get(y, x, ImageRecognitionLab.ColorEnum.BLUE);
@@ -212,11 +222,11 @@ ImageRecognitionLab.RgbMap = (function () {
             }
         });
         return result;
-    }
+    };
 
     RgbMap.prototype.appendArea = function(area){
 
-      whiteArea = Array.apply(null, Array(this.width - area.width)).map(function(){return [255, 255, 255]});
+      whiteArea = Array.apply(null, Array(this.width - area.width)).map(function(){return ImageRecognitionLab.Colors.WHITE });
       var currentAreaPixels = area.pixels;
       _.each(area.pixels, function(line, i){
         currentAreaPixels[i] = line.concat(whiteArea)
@@ -224,6 +234,17 @@ ImageRecognitionLab.RgbMap = (function () {
 
       this.pixels = this.pixels.concat(area.pixels);
       this.height += area.height;
+    };
+
+    RgbMap.prototype.appendMap = function(map){
+
+      result = new this.constructor(map.width + this.width, Math.max(this.height, map.height), undefined, ImageRecognitionLab.Colors.WHITE );
+
+      _.each(this.pixels, function(row, i){
+        result.pixels[i] = row.concat(map.pixels[i]);
+      });
+
+      return result;
     };
 
     RgbMap.prototype.transformByCore = (function() {
