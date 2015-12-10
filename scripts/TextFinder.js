@@ -3,13 +3,15 @@ textFinder = (function (){
         LineDelimiterDarkPointLesThan: 0.2,
         LetterDelimiterDarkPointLesThan: 0.05,
         binarizationCoefStep: -0.05,  //step of minus binarization coef
-        letterTogetherCoef: 1.4 //In how much two letter should have width than average letter width
+        letterTogetherCoef: 1.4, //In how much two letter should have width than average letter width
+        letterHeight: 40
     };
 
     return {
         splitTextLines: splitTextLines,
         splitLetters: splitLetters,
-        findWords: findWords
+        findWords: findWords,
+        settings: settings
     };
 
     function findWords(areaMap, monoRgbMap){
@@ -28,11 +30,16 @@ textFinder = (function (){
         });
 
       return simpleAreaMapSplittedLines.areasGroups.map(function(areasGroup){
-          var letters = areasGroup.map(function(letter){
-            return simpleAreaMapSplittedLines.rgbMap.cut({left: letter.minX, right: letter.maxX, top: letter.minY, bottom: letter.maxY })
+          var letters = areasGroup.map(function(letterArea){
+            return simpleAreaMapSplittedLines.rgbMap.cut({
+              left: letterArea.minX,
+              right: letterArea.maxX,
+              top: letterArea.minY,
+              bottom: letterArea.maxY
+            }).normalizeLetter(settings.letterHeight, settings.letterHeight);
           });
-          return {letters: letters}
-        });
+          return { letters: letters }
+        }).filter(function(area){if(area.letters[0]) {console.log(area.letters[0].width)} return area.letters[0] && area.letters[0].width < 300}); //Hack to reject long non-letter objects
     }
 
     function splitLetters(area, monoRgbMap){

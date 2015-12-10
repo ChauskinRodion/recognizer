@@ -1,8 +1,8 @@
 ﻿var ImageRecognitionLab = ImageRecognitionLab || {}
 
 ImageRecognitionLab.MonoRgbMap = (function () {
-    function MonoRgbMap(width, height, imageData) {
-        ImageRecognitionLab.MonoRgbMap.superclass.constructor.call(this, width, height, imageData);
+    function MonoRgbMap(width, height, imageData, color) {
+        ImageRecognitionLab.MonoRgbMap.superclass.constructor.call(this, width, height, imageData, color);
     }
 
     ImageRecognitionLab.extend(MonoRgbMap, ImageRecognitionLab.RgbMap);

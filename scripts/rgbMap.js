@@ -2,8 +2,8 @@
 
 ImageRecognitionLab.RgbMap = (function () {
     function RgbMap(width, height, imageData, color) {
-        this.width = width;
-        this.height = height;
+        this.width = Math.floor(width);
+        this.height = Math.floor(height);
         this.count = width * height;
 
         if (imageData !== undefined) {
@@ -175,15 +175,27 @@ ImageRecognitionLab.RgbMap = (function () {
             }
         }
         return result;
-    }
+    };
+
+    RgbMap.prototype.normalizeLetter = function(height, width) {
+      var sx = height / this.height,
+          sy = height / this.height;
+
+      var result = this.zoom(sx, sy);
+          result = ImageRecognitionLab.ProcessingManager.binaryFilter(result);
+
+      var whiteArea = new this.constructor(width - result.width, result.height, undefined, ImageRecognitionLab.Colors.WHITE);
+          result = result.appendMap(whiteArea);
+      return result;
+    };
 
     RgbMap.prototype.zoom = function (sx, sy) {
         var self = this;
         var result = new this.constructor(sx * self.width, sy * self.height);
         for (var i = 0; i < result.height; i++) {
             for (var j = 0; j < result.width; j++) {
-                var x = Math.round(j / sx);
-                var y = Math.round(i / sy);
+                var x = Math.floor(j / sx);
+                var y = Math.floor(i / sy);
                 var red = self.get(y, x, ImageRecognitionLab.ColorEnum.RED);
                 var green = self.get(y, x, ImageRecognitionLab.ColorEnum.GREEN);
                 var blue = self.get(y, x, ImageRecognitionLab.ColorEnum.BLUE);
@@ -210,11 +222,11 @@ ImageRecognitionLab.RgbMap = (function () {
             }
         });
         return result;
-    }
+    };
 
     RgbMap.prototype.appendArea = function(area){
 
-      whiteArea = Array.apply(null, Array(this.width - area.width)).map(function(){return [255, 255, 255]});
+      whiteArea = Array.apply(null, Array(this.width - area.width)).map(function(){return ImageRecognitionLab.Colors.WHITE });
       var currentAreaPixels = area.pixels;
       _.each(area.pixels, function(line, i){
         currentAreaPixels[i] = line.concat(whiteArea)
@@ -226,11 +238,11 @@ ImageRecognitionLab.RgbMap = (function () {
 
     RgbMap.prototype.appendMap = function(map){
 
-      result = new ImageRecognitionLab.RgbMap(map.width + this.width, Math.max(this.height, map.height));
+      result = new this.constructor(map.width + this.width, Math.max(this.height, map.height), undefined, ImageRecognitionLab.Colors.WHITE );
 
-      for(var i = 0; i < result.height; i++) {
-        result.pixels[i] = this.pixels[i].concat(map.pixels[i]);
-      }
+      _.each(this.pixels, function(row, i){
+        result.pixels[i] = row.concat(map.pixels[i]);
+      });
 
       return result;
     };

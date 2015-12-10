@@ -150,14 +150,13 @@
                 return word.letters.length > 0
                             }).map(function(word){
 
-               var wordFromLetters = ImageRecognitionLab.ProcessingManager.binaryFilter(word.letters[0]);
-                _.each(word.letters, function(letter, i){
-                    if(i == 0){ return }
+               var wordFromLetters = null;
 
-                    var delimiter = new ImageRecognitionLab.RgbMap(1, letter.height, undefined, [255, 0, 0]);
-                    wordFromLetters  = wordFromLetters.appendMap(delimiter);
-                    letter = ImageRecognitionLab.ProcessingManager.binaryFilter(letter);
-                    wordFromLetters  = wordFromLetters.appendMap(letter)
+                _.each(word.letters, function(letter, i){
+                    if(i == 0){ wordFromLetters = letter; return }
+
+                    var delimiter = new ImageRecognitionLab.RgbMap(1, letter.height, undefined, ImageRecognitionLab.Colors.RED);
+                    wordFromLetters  = wordFromLetters.appendMap(delimiter).appendMap(letter);
                 });
 
                 return wordFromLetters;
