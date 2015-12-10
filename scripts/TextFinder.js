@@ -9,10 +9,10 @@ textFinder = (function (){
     return {
         splitTextLines: splitTextLines,
         splitLetters: splitLetters,
-        findLetters: findLetters
+        findWords: findWords
     };
 
-    function findLetters(areaMap, monoRgbMap){
+    function findWords(areaMap, monoRgbMap){
         monoRgbMap = monoRgbMap.zoom(4, 4);
         var simpleAreaMapSplittedLines = new ImageRecognitionLab.SimpleAreaMap(monoRgbMap);
         areaMap.areas.forEach(function (area){
@@ -21,23 +21,18 @@ textFinder = (function (){
             area.minY = area.minY * 4;
             area.maxY = area.maxY * 4;
             splitTextLines(area, monoRgbMap).forEach(function (lineArea){
-                var letters = [];
-                splitLetters(lineArea, monoRgbMap).forEach(function(letterArea){
-                    letters.push(letterArea);
-                });
-                simpleAreaMapSplittedLines.addAreasGroup(letters);
+                simpleAreaMapSplittedLines.addAreasGroup(
+                  splitLetters(lineArea, monoRgbMap).map(function(letterArea){ return letterArea})
+                );
             });
         });
 
-        var result = [];
-        simpleAreaMapSplittedLines.areasGroups.forEach(function(areasGroup){
-            var innerResult = [];
-            areasGroup.forEach(function(letter){
-                innerResult.push(simpleAreaMapSplittedLines.rgbMap.cut({left: letter.minX, right: letter.maxX, top: letter.minY, bottom: letter.maxY }));
-            });
-            result.push(innerResult);
+      return simpleAreaMapSplittedLines.areasGroups.map(function(areasGroup){
+          var letters = areasGroup.map(function(letter){
+            return simpleAreaMapSplittedLines.rgbMap.cut({left: letter.minX, right: letter.maxX, top: letter.minY, bottom: letter.maxY })
+          });
+          return {letters: letters}
         });
-        return result;
     }
 
     function splitLetters(area, monoRgbMap){

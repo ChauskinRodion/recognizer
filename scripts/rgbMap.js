@@ -1,7 +1,7 @@
 ﻿var ImageRecognitionLab = ImageRecognitionLab || {}
 
 ImageRecognitionLab.RgbMap = (function () {
-    function RgbMap(width, height, imageData) {
+    function RgbMap(width, height, imageData, color) {
         this.width = width;
         this.height = height;
         this.count = width * height;
@@ -10,7 +10,7 @@ ImageRecognitionLab.RgbMap = (function () {
             this.pixels = createRgbMap(width, height, imageData);
         }
         else {
-            this.pixels = createEmptyRgbMap(width, height);
+            this.pixels = createEmptyRgbMap(width, height, color);
         }
 
         function createRgbMap(width, height, imageData) {
@@ -30,15 +30,13 @@ ImageRecognitionLab.RgbMap = (function () {
             return pixels;
         }
 
-        function createEmptyRgbMap(width, height) {
+        function createEmptyRgbMap(width, height, color) {
             var pixels = new Array();
             for (var i = 0; i < height; i++) {
                 pixels[i] = new Array();
                 for (var j = 0; j < width; j++) {
-                    pixels[i][j] = new Array();
-                    pixels[i][j][0] = 0;
-                    pixels[i][j][1] = 0;
-                    pixels[i][j][2] = 0;
+                  pixels[i][j] = color ? color :  [0, 0, 0]
+
                 }
             }
             return pixels;
@@ -224,6 +222,17 @@ ImageRecognitionLab.RgbMap = (function () {
 
       this.pixels = this.pixels.concat(area.pixels);
       this.height += area.height;
+    };
+
+    RgbMap.prototype.appendMap = function(map){
+
+      result = new ImageRecognitionLab.RgbMap(map.width + this.width, Math.max(this.height, map.height));
+
+      for(var i = 0; i < result.height; i++) {
+        result.pixels[i] = this.pixels[i].concat(map.pixels[i]);
+      }
+
+      return result;
     };
 
     RgbMap.prototype.transformByCore = (function() {

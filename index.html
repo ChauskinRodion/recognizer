@@ -138,16 +138,30 @@
             areaMap.areas = _.filter(areaMap.areas, function (area) {
                 return area.minY >= startTextY && area.minX >= startTextX && area.maxX <= endTextX;
             });
-            var sortedByArea = _.sortBy(areaMap.areas, function (area) {
-                return area.area;
+
+//            var sortedByArea = _.sortBy(areaMap.areas, function (area) {
+//                return area.area;
+//            });
+//            areaMap.areas = _.first(sortedByArea.reverse(), 12);
+
+            var words = textFinder.findWords(areaMap, monoRgbMap);
+
+            var areas = words.filter(function(word){
+                return word.letters.length > 0
+                            }).map(function(word){
+
+               var wordFromLetters = ImageRecognitionLab.ProcessingManager.binaryFilter(word.letters[0]);
+                _.each(word.letters, function(letter, i){
+                    if(i == 0){ return }
+
+                    var delimiter = new ImageRecognitionLab.RgbMap(1, letter.height, undefined, [255, 0, 0]);
+                    wordFromLetters  = wordFromLetters.appendMap(delimiter);
+                    letter = ImageRecognitionLab.ProcessingManager.binaryFilter(letter);
+                    wordFromLetters  = wordFromLetters.appendMap(letter)
+                });
+
+                return wordFromLetters;
             });
-            areaMap.areas = _.first(sortedByArea.reverse(), 12);
-
-            var letters = textFinder.findLetters(areaMap, monoRgbMap);
-
-            var areas = _.flatten(_.map(areaMap.areas, function(area){
-                return textFinder.splitTextLines(area, monoRgbMap)
-            }));
 
             resultWidth = _.max(areas, function(x){return x.width}).width;
             resultArea = new ImageRecognitionLab.RgbMap(resultWidth, 0);
