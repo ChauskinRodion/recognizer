@@ -182,10 +182,23 @@ ImageRecognitionLab.RgbMap = (function () {
           sy = height / this.height;
 
       var result = this.zoom(sx, sy);
-          result = ImageRecognitionLab.ProcessingManager.binaryFilter(result);
+      result = ImageRecognitionLab.ProcessingManager.binaryFilter(result);
+        var edge = 2;
+        result = result.cut({ left: edge, right: result.width - edge, top: edge, bottom: result.height - edge }); // hack to get rid of a grey border
+
 
       var whiteArea = new this.constructor(width - result.width, result.height, undefined, ImageRecognitionLab.Colors.WHITE);
-          result = result.appendMap(whiteArea);
+      result = result.appendMap(whiteArea);
+        
+        //this is only for the presentation
+        //should be deleted as soon as we passed 3th check point
+        for (var i = 0; i < result.height; i++) {
+            result.pixels[i][0] = ImageRecognitionLab.Colors.RED;
+            result.pixels[i][result.width - 1] = ImageRecognitionLab.Colors.RED;
+            result.pixels[0][i] = ImageRecognitionLab.Colors.RED;
+            result.pixels[result.height - 1][i] = ImageRecognitionLab.Colors.RED;
+        }
+
       return result;
     };
 
@@ -270,7 +283,7 @@ ImageRecognitionLab.RgbMap = (function () {
                     var absI = i + k;
                     var absJ = j + p;
                     if ((absI < 0) || (absJ < 0) || (absI >= this.height) || (absJ >= this.width)) {
-                        return this.get(i, j, color);
+                        return this.get(i, j, 0);
                     }
                     var coreI = k + halfSize;
                     var coreJ = p + halfSize;

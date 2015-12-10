@@ -145,17 +145,17 @@
 
             var words = textFinder.findWords(areaMap, monoRgbMap);
 
-            var areas = words.filter(function(word){
-                return word.letters.length > 0
-                            }).map(function(word){
-
-               var wordFromLetters = null;
-
-                _.each(word.letters, function(letter, i){
-                    if(i == 0){ wordFromLetters = letter; return }
-
-                    var delimiter = new ImageRecognitionLab.RgbMap(1, letter.height, undefined, ImageRecognitionLab.Colors.RED);
-                    wordFromLetters  = wordFromLetters.appendMap(delimiter).appendMap(letter);
+            var areas = words.filter(function(word) {
+                return word.letters.length > 0;
+            }).map(function (word) {
+                var wordFromLetters = null;
+                _.each(word.letters, function (letter, i) {
+                    if (i === 0) {
+                        wordFromLetters = letter;
+                        return;
+                    }
+                    //var delimiter = new ImageRecognitionLab.RgbMap(1, letter.height, undefined, ImageRecognitionLab.Colors.RED);
+                    wordFromLetters = wordFromLetters.appendMap(letter);
                 });
 
                 return wordFromLetters;
@@ -165,7 +165,7 @@
             resultArea = new ImageRecognitionLab.RgbMap(resultWidth, 0);
 
             _.each(areas, function(area){
-                resultArea.appendArea(area)
+                resultArea.appendArea(area);
             });
 
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), resultArea);
@@ -179,7 +179,7 @@
         ImageRecognitionLab.ImageManager.getRgbMap(filePath).then(function(result) {
             ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
             var rgbMap = ImageRecognitionLab.ProcessingManager.linearCorrectionFilter(result);
-            var rgbMap = rgbMap.zoom(2, 2);
+            //var rgbMap = rgbMap.zoom(2, 2);
             var edges = ImageRecognitionLab.ProcessingManager.prewittFilter(rgbMap);
             var monoRgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(edges);
             var binaryRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(monoRgbMap, 10);
@@ -251,7 +251,7 @@
 
 
             ImageRecognitionLab.LineRetriever.drawLines(accum, result, { red: 0, green: 0, blue: 255 });
-            ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
+            //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), result);
 
             // rotate and cut
 
@@ -279,16 +279,37 @@
                 testRgb = testRgb.cut({ left: xMin, right: xMax, top: yMin, bottom: yMax });
 
                 ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), testRgb);
+                //debugger;
 
                 //find strings
                 var zoomed = testRgb.zoom(3, 3);
+
+                //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), zoomed);
+                //debugger;
+
                 monoRgbMap = ImageRecognitionLab.ProcessingManager.toMonochrome(zoomed);
+
+                //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), monoRgbMap);
+                //debugger;
+
                 binaryRgbMap = ImageRecognitionLab.ProcessingManager.binaryFilter(monoRgbMap);
+
+                //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), binaryRgbMap);
+                //debugger;
+
                 core = [[1, 1, 1],
                     [1, 1, 1],
                     [1, 1, 1]];
                 rgbMapAfterErosion = ImageRecognitionLab.ProcessingManager.morphologicalAnd(binaryRgbMap, core);
+
+                //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMapAfterErosion);
+                //debugger;
+
                 var filteredBinaryRgbMap = ImageRecognitionLab.ProcessingManager.medianFilter(rgbMapAfterErosion);
+
+                ////ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), filteredBinaryRgbMap);
+                ////debugger;
+
                 core = [
                 [0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0],
@@ -299,7 +320,15 @@
                 [0, 0, 0, 0, 0, 0, 0]
                 ];
                 var rgbMapAfterMorphology = ImageRecognitionLab.ProcessingManager.morphologicalOr(filteredBinaryRgbMap, core);
+
+                //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMapAfterMorphology);
+                //debugger;
+
                 rgbMapAfterMorphology = ImageRecognitionLab.ProcessingManager.morphologicalOr(rgbMapAfterMorphology, core);
+
+                //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_in"), rgbMapAfterMorphology);
+                //debugger;
+
                 var areaMap = new ImageRecognitionLab.AreaMap(rgbMapAfterMorphology);
                 areaMap.calculateArea();
                 areaMap.calculatePerimeter(rgbMapAfterMorphology);
@@ -308,9 +337,39 @@
                     return area.area;
                 });
                 areaMap.areas = _.first(sortedByArea.reverse(), 15);
-                areaMap.circle(zoomed, { red: 255, green: 0, blue: 0 });
+                //areaMap.circle(zoomed, { red: 255, green: 0, blue: 0 });
 
-                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), zoomed);
+
+                //==============copypast=================================================
+                var words = textFinder.findWords(areaMap, monoRgbMap);
+
+                var areas = words.filter(function (word) {
+                    return word.letters.length > 0
+                }).map(function (word) {
+
+                    var wordFromLetters = null;
+
+                    _.each(word.letters, function (letter, i) {
+                        if (i == 0) { wordFromLetters = letter; return }
+
+                        var delimiter = new ImageRecognitionLab.RgbMap(1, letter.height, undefined, ImageRecognitionLab.Colors.RED);
+                        wordFromLetters = wordFromLetters.appendMap(delimiter).appendMap(letter);
+                    });
+
+                    return wordFromLetters;
+                });
+
+                resultWidth = _.max(areas, function (x) { return x.width }).width;
+                resultArea = new ImageRecognitionLab.RgbMap(resultWidth, 0);
+
+                _.each(areas, function (area) {
+                    resultArea.appendArea(area)
+                });
+
+                ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), resultArea);
+                //======================================================================
+
+                //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), zoomed);
             }
 
             //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
