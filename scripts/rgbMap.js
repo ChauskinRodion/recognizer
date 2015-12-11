@@ -186,10 +186,12 @@ ImageRecognitionLab.RgbMap = (function () {
         var edge = 2;
         result = result.cut({ left: edge, right: result.width - edge, top: edge, bottom: result.height - edge }); // hack to get rid of a grey border
 
+        var whiteWidth = width - result.width;
+        if (whiteWidth > 0){
+          var whiteArea = new this.constructor(whiteWidth, result.height, undefined, ImageRecognitionLab.Colors.WHITE);
+          result = result.appendMap(whiteArea);
+        }
 
-      var whiteArea = new this.constructor(width - result.width, result.height, undefined, ImageRecognitionLab.Colors.WHITE);
-      result = result.appendMap(whiteArea);
-        
         //this is only for the presentation
         //should be deleted as soon as we passed 3th check point
         for (var i = 0; i < result.height; i++) {
