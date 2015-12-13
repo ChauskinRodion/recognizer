@@ -47,6 +47,7 @@ ImageRecognitionLab.ImageManager = (function () {
 
     return {
         getRgbMap: getRgbMap,
-        drawRgbMap: drawRgbMap
+        drawRgbMap: drawRgbMap,
+        getRgbMapFromImage: getRgbMapFromImage
     }
 })();
