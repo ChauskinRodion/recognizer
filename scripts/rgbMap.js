@@ -192,15 +192,6 @@ ImageRecognitionLab.RgbMap = (function () {
           result = result.appendMap(whiteArea);
         }
 
-        //this is only for the presentation
-        //should be deleted as soon as we passed 3th check point
-        for (var i = 0; i < result.height; i++) {
-            result.pixels[i][0] = ImageRecognitionLab.Colors.RED;
-            result.pixels[i][result.width - 1] = ImageRecognitionLab.Colors.RED;
-            result.pixels[0][i] = ImageRecognitionLab.Colors.RED;
-            result.pixels[result.height - 1][i] = ImageRecognitionLab.Colors.RED;
-        }
-
       return result;
     };
 

@@ -4,7 +4,7 @@ textFinder = (function (){
         LetterDelimiterDarkPointLesThan: 0.05,
         binarizationCoefStep: -0.05,  //step of minus binarization coef
         letterTogetherCoef: 1.4, //In how much two letter should have width than average letter width
-        letterHeight: 40
+        letterHeight: 20
     };
 
     return {

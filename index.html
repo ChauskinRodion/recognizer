@@ -28,6 +28,7 @@
             <button id="btn_filter">Filter</button>
             <button id="btn_findAreas">Find areas</button>
             <button id="btn_findDoc">Find document</button>
+            <button onclick="loadLetters()">Load Letters</button>
         </fieldset>
     </div>
     <div class="panel output-panel row">
@@ -375,6 +376,24 @@
             //ImageRecognitionLab.ImageManager.drawRgbMap($("canvas#image_out"), result);
         });
     });
+
+
+    loadLetters = function(){
+        files = ['1', '2', '3', '4', '5', '5','6','7','8','9','0','slash'];
+        result =
+        LETTERS = files.map(function(fileName){
+            image = new Image();
+            image.src = "letters/" + fileName + '.png';
+            image.width = 20;
+            image.height = 20;
+
+            rgbMap = ImageRecognitionLab.ImageManager.getRgbMapFromImage(image);
+            data = _.flatten(rgbMap.pixels, 1).map(function(pixel){console.log(pixel); return pixel[0] == 0 ? 1 : 0});
+
+            return {data: data, char: fileName}
+        });
+
+    }
     </script>
 </body>
 </html>
