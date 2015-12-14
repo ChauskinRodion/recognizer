@@ -379,8 +379,10 @@
 
 
     loadLetters = function(){
-        files = ['1', '2', '3', '4', '5', '5','6','7','8','9','0','slash'];
-        result =
+        files = ["0", "1", "2", "2_1", "3", "4", "5", "6", "7", "8", "9", "A", "A_1", "A_2", "B",
+                 "C", "D", "E", "G", "H", "I", "K", "L", "M", "M_1", "M_2", "O", "P", "R", "S",
+                 "slash", "T", "U", "V", "X", "X_1", "Y", "Z", "Б", "Г", "Д", "И", "Й", "Л", "П", "Ч", "Я"];
+
         LETTERS = files.map(function(fileName){
             image = new Image();
             image.src = "letters/" + fileName + '.png';
@@ -390,7 +392,7 @@
             rgbMap = ImageRecognitionLab.ImageManager.getRgbMapFromImage(image);
             data = _.flatten(rgbMap.pixels, 1).map(function(pixel){console.log(pixel); return pixel[0] == 0 ? 1 : 0});
 
-            return {data: data, char: fileName}
+            return {data: data, char: fileName.split("_")[0]}
         });
 
     }
